@@ -8,21 +8,6 @@ from ball_item import BallItem, AttackSector
 from player_item import PlayerItem
 from core import players
 
-# Definiere hier ggf. die Klasse DraggableEllipse, falls diese noch nicht ausgelagert wurde
-# oder importiere sie ebenfalls aus einer eigenen Datei.
-
-# Klasse für statische Kreise (Blockspieler)
-class StaticEllipse(QGraphicsEllipseItem):
-    def __init__(self, rect, label=""):
-        super().__init__(rect)
-        self.setBrush(QBrush(QColor("red")))
-        self.setPen(QPen(Qt.black, 2))
-        if label:
-            text = QGraphicsTextItem(label, self)
-            text.setDefaultTextColor(Qt.white)
-            text.setPos(rect.x() + rect.width()/2 - text.boundingRect().width()/2,
-                        rect.y() + rect.height()/2 - text.boundingRect().height()/2)
-
 # Zeichnet das Volleyballfeld (Vogelperspektive)
 def drawCourt(scene):
     scale = 30
@@ -58,7 +43,7 @@ def main():
     ball.setPen(QPen(Qt.black, 2))
     scene.addItem(ball)
 
-    # Abwehrmannschaft: Nutze PlayerItem statt DraggableEllipse und speichere in globaler Liste "players"
+    # Abwehrmannschaft
     radius = 15
     diameter = 2 * radius
     defense_positions = [
@@ -69,7 +54,7 @@ def main():
         (2.5 * scale - radius, 11 * scale - radius),
         (6.5 * scale - radius, 11 * scale - radius),
     ]
-    # Vorläufig ohne Ballreferenz, später wird er über link_sector gesetzt
+    
     for i, (x, y) in enumerate(defense_positions):
         player = PlayerItem(QRectF(x, y, diameter, diameter), f"D{i+1}", ball)
         player.setBrush(QBrush(QColor("green")))

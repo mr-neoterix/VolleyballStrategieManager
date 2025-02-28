@@ -24,6 +24,11 @@ class PlayerItem(DraggableEllipse):
             return
         # Spieler-Radius (angenommen, der Spieler ist ein Kreis)
         R = self.rect().width() / 2
+        # Wenn d - R > 300 (Schattenradius), ist der Spieler außerhalb des Schattenbereichs
+        # und der Schatten muss entfernt werden
+        if d + 2*R > 300:
+            self.shadow.setPath(QPainterPath())
+            return 
         # Winkel vom Ball zum Spielerzentrum
         theta = math.atan2(dy, dx)
         # Berechne den Tangentenwinkel (sicherstellen, dass R/d <= 1)
