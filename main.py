@@ -58,12 +58,12 @@ def main():
     radius = 10
     diameter = 2 * radius
     defense_positions = [
-        (4.5 * scale - radius, 10 * scale - radius),
-        (2.5 * scale - radius, 10 * scale - radius),
-        (6.5 * scale - radius, 10 * scale - radius),
-        (4.5 * scale - radius, 11 * scale - radius),
-        (2.5 * scale - radius, 11 * scale - radius),
-        (6.5 * scale - radius, 11 * scale - radius),
+        (4.5 * scale - radius, 15 * scale - radius),
+        (2.5 * scale - radius, 15 * scale - radius),
+        (6.5 * scale - radius, 15 * scale - radius),
+        (4.5 * scale - radius, 16 * scale - radius),
+        (2.5 * scale - radius, 16 * scale - radius),
+        (6.5 * scale - radius, 16 * scale - radius),
     ]
     
     # Create players and add their components in the right order
