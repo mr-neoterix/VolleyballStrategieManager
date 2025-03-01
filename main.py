@@ -40,7 +40,6 @@ def main():
     ball.setPos(ball_x - ball_radius, ball_y - ball_radius)
     ball.setBrush(QBrush(QColor("yellow")))
     ball.setPen(QPen(Qt.black, 2))
-    scene.addItem(ball)
 
     # Abwehrmannschaft
     radius = 10
@@ -54,17 +53,28 @@ def main():
         (6.5 * scale - radius, 11 * scale - radius),
     ]
     
+    # Sektor (Angriffssituation) als eigenes Top-Level-Item
+    attack_sector = AttackSector(ball_x, ball_y, radius=10 * scale)
+    scene.addItem(attack_sector)
+    ball.link_sector(attack_sector)
+    
     for i, (x, y) in enumerate(defense_positions):
         player = PlayerItem(QRectF(x, y, diameter, diameter), f"D{i+1}", ball)
         player.setBrush(QBrush(QColor("green")))
         
-        # Füge Schlagschatten hinzu
-        scene.addItem(player.shadow)
-        
-        # Initialisiere Aktionssektor und füge ihn zur Szene hinzu
+        # Initialisiere Aktionssektoren und füge beide zur Szene hinzu
         player.init_action_sector()
+        
+        # Füge den breiten Sektor zuerst hinzu (niedrigerer z-Index)
+        if player.wide_action_sector:
+            scene.addItem(player.wide_action_sector)
+            
+        # Dann den schmalen Sektor
         if player.action_sector:
             scene.addItem(player.action_sector)
+        
+        # Füge Schlagschatten hinzu
+        scene.addItem(player.shadow)
         
         # Füge Spieler zur Szene hinzu (nach Schatten und Aktionssektor)
         scene.addItem(player)
@@ -72,10 +82,9 @@ def main():
         # Füge Spieler zur globalen Liste hinzu
         players.append(player)
         
-    # Sektor (Angriffssituation) als eigenes Top-Level-Item
-    attack_sector = AttackSector(ball_x, ball_y, radius=10 * scale)
-    scene.addItem(attack_sector)
-    ball.link_sector(attack_sector)
+    # Füge den Ball nach den Spielern hinzu (erscheint über dem Spielfeld, aber unter den Spielern)
+    ball.setZValue(500)  # Höher als das Spielfeld, aber niedriger als die Spieler
+    scene.addItem(ball)
     
     view = ScalableGraphicsView(scene)
     view.setWindowTitle("Volleyball Angriffssituation")

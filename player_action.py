@@ -1,19 +1,19 @@
 import math
 from PyQt5.QtWidgets import QGraphicsPathItem
 from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QBrush, QPen, QColor, QPainterPath, QRadialGradient, QConicalGradient, QPixmap, QPainter, QTransform
+from PyQt5.QtGui import QBrush, QPen, QColor, QPainterPath, QRadialGradient
 
 class ActionSector(QGraphicsPathItem):
-    def __init__(self, player_x, player_y, ball_x, ball_y, scale=30):
+    def __init__(self, player_x, player_y, ball_x, ball_y, scale=30, max_radius_meters=4, angle_width=40):
         super().__init__()
         self.player_x = player_x
         self.player_y = player_y
         self.ball_x = ball_x
         self.ball_y = ball_y
         self.scale = scale
-        self.max_radius = 4 * scale  # 4 meters max
-        self.angle_width = 240  # sector width in degrees (each side)
-        self.net_y = 9 * scale  # Y position of the net
+        self.max_radius = max_radius_meters * scale  # Convert from meters to pixels
+        self.angle_width = angle_width  # sector width in degrees
+        self.net_y = 9 * scale  # Y position of the net (9 meters from the top)
         self.updatePosition(player_x, player_y, ball_x, ball_y)
         
     def updatePosition(self, player_x, player_y, ball_x, ball_y):
@@ -33,20 +33,44 @@ class ActionSector(QGraphicsPathItem):
         # Ensure we have a valid direction vector
         if dx == 0 and dy == 0:
             viewing_angle = 0  # Default angle if no direction
+            distance_to_intersection = self.max_radius
         else:
             viewing_angle = (-math.degrees(math.atan2(dy, dx))) % 360
+            
+            # Calculate intersection of player-ball line with the net line
+            # First, determine if the line intersects with the net
+            if self.player_y < self.net_y and self.ball_y < self.net_y:
+                # Both player and ball are above the net, no intersection
+                distance_to_intersection = self.max_radius
+            elif self.player_y > self.net_y and self.ball_y > self.net_y:
+                # Both player and ball are below the net, no intersection
+                distance_to_intersection = self.max_radius
+            else:
+                # The line crosses the net, calculate intersection point
+                if dy == 0:  # Horizontal line
+                    intersection_x = self.player_x
+                else:
+                    # Calculate the x-coordinate where the line intersects the net
+                    # Using the line equation: (x - x1) / (x2 - x1) = (y - y1) / (y2 - y1)
+                    # Solving for x when y = net_y
+                    intersection_x = self.player_x + (self.net_y - self.player_y) * dx / dy
+                
+                # Calculate distance from player to intersection point
+                distance_to_intersection = math.sqrt(
+                    (intersection_x - self.player_x) ** 2 + 
+                    (self.net_y - self.player_y) ** 2
+                )
+                
+                # Limit to max_radius if needed
+                distance_to_intersection = min(distance_to_intersection, self.max_radius)
         
         # Calculate start and end angles for the sector
         start_angle = viewing_angle - self.angle_width/2
         end_angle = viewing_angle + self.angle_width/2
         sweep_angle = self.angle_width
         
-        # Calculate radius - either distance to net or max_radius, whichever is smaller
-        distance_to_net = abs(self.net_y - self.player_y)
-        radius = min(self.max_radius, distance_to_net)
-        
-        # Limit radius to court boundaries to avoid drawing outside
-        radius = min(radius, self.scale * 20)  # Maximum 20 meters from player
+        # Use the calculated radius
+        radius = distance_to_intersection
         
         # Draw the sector
         path.moveTo(self.player_x, self.player_y)
@@ -56,50 +80,18 @@ class ActionSector(QGraphicsPathItem):
         path.lineTo(self.player_x, self.player_y)
         self.setPath(path)
         
-        # Create a QPixmap for combined gradients
-        size = int(radius * 2)
-        if size <= 0:  # Avoid creating invalid pixmaps
-            return
-            
-        combined = QPixmap(size, size)
-        combined.fill(Qt.transparent)
+        # Create a simple radial gradient from player outward
+        gradient = QRadialGradient(QPointF(self.player_x, self.player_y), radius)
         
-        painter = QPainter(combined)
-        # Radial gradient: from player position outward
-        radial = QRadialGradient(QPointF(size/2, size/2), radius)
-        radial.setColorAt(0.0, QColor(0, 255, 0, 180))   # Green near player
-        radial.setColorAt(1.0, QColor(0, 255, 0, 0))     # Transparent at edges
-        painter.setBrush(QBrush(radial))
-        painter.setPen(Qt.NoPen)
-        painter.drawRect(0, 0, size, size)
+        # Green near player (opacity 150)
+        gradient.setColorAt(0.0, QColor(0, 255, 0, 150))
         
-        # Conical gradient overlaying: direction based on viewing angle
-        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-        conical = QConicalGradient(QPointF(size/2, size/2), viewing_angle)
-        conical.setColorAt(0.0, QColor(0, 255, 0, 150))      # Green at viewing direction
-        # Calculate color stops based on angle_width
-        angle_fraction = self.angle_width/360
-        conical.setColorAt(angle_fraction/2, QColor(0, 255, 0, 0))  # Transparent at edges
-        conical.setColorAt(1 - angle_fraction/2, QColor(0, 255, 0, 0))
-        conical.setColorAt(1.0, QColor(0, 255, 0, 150))      # Green again
-        painter.setBrush(QBrush(conical))
-        painter.drawRect(0, 0, size, size)
-        painter.end()
+        # Start fading at 70% of the radius
+        gradient.setColorAt(0.7, QColor(0, 255, 0, 150))
         
-        # Set opacity for the combined QPixmap
-        temp = QPixmap(size, size)
-        temp.fill(Qt.transparent)
-        painter2 = QPainter(temp)
-        painter2.setOpacity(0.5)
-        painter2.drawPixmap(0, 0, combined)
-        painter2.end()
-        combined = temp
+        # Completely transparent at the edge
+        gradient.setColorAt(1.0, QColor(0, 255, 0, 0))
         
-        # Position the brush correctly
-        combined_brush = QBrush(combined)
-        transform = QTransform()
-        transform.translate(self.player_x - size/2, self.player_y - size/2)
-        combined_brush.setTransform(transform)
-        
-        self.setBrush(combined_brush)
+        # Set as brush
+        self.setBrush(QBrush(gradient))
         self.setPen(QPen(Qt.NoPen))

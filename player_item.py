@@ -8,15 +8,20 @@ from player_action import ActionSector
 class PlayerItem(DraggableEllipse):
     def __init__(self, rect, label="", ball=None):
         super().__init__(rect, label)
+        # Set a very high z-value for the player itself
+        self.setZValue(1000)  # Ensure player is always on top
+        
         self.ball = ball  # Referenz zum Ball zur Berechnung des Schlagschattens
+        
         # Erstelle den Schlagschatten als separates QGraphicsPathItem
         self.shadow = QGraphicsPathItem()
-        self.shadow.setZValue(self.zValue() - 1)  # Hinter den Spieler legen
-        self.shadow.setBrush(QBrush(QColor(0, 255, 0, 128)))  # Halbtransparentes Grün
+        self.shadow.setZValue(10)  # Higher than default but below player
+        self.shadow.setBrush(QBrush(QColor(0, 255, 0, 128)))
         self.shadow.setPen(QPen(Qt.NoPen))
         
-        # Nur Aktionssektor, keine Blickrichtungslinie mehr
+        # Aktionssektor (jetzt zwei verschiedene)
         self.action_sector = None
+        self.wide_action_sector = None
         
         # Initialisiere Aktionssektor, wenn Ball vorhanden ist
         if ball:
@@ -26,14 +31,34 @@ class PlayerItem(DraggableEllipse):
         if not self.ball:
             return
             
-        # Erstelle den Aktionssektor
+        # Erstelle die Aktionssektoren
         ball_rect = self.ball.rect()
         ball_center = self.ball.scenePos() + QPointF(ball_rect.width()/2, ball_rect.height()/2)
         player_center = self.scenePos() + self.rect().center()
         
-        self.action_sector = ActionSector(player_center.x(), player_center.y(), 
-                                         ball_center.x(), ball_center.y())
-        self.action_sector.setZValue(self.zValue() - 2)  # Unter Schlagschatten
+        # Erster Sektor: 4 Meter, 40 Grad
+        self.action_sector = ActionSector(
+            player_center.x(), player_center.y(), 
+            ball_center.x(), ball_center.y(),
+            max_radius_meters=6, 
+            angle_width=40
+        )
+        self.action_sector.setZValue(5)
+        
+        # Zweiter Sektor: 2 Meter, 240 Grad (breiter und kürzer)
+        self.wide_action_sector = ActionSector(
+            player_center.x(), player_center.y(), 
+            ball_center.x(), ball_center.y(),
+            max_radius_meters=2, 
+            angle_width=240
+        )
+        # Setze eine andere Farbe für den breiten Sektor
+        gradient = QRadialGradient(QPointF(player_center.x(), player_center.y()), 2 * 30)
+        gradient.setColorAt(0.0, QColor(255, 165, 0, 150))  # Orange color
+        gradient.setColorAt(0.7, QColor(255, 165, 0, 150))
+        gradient.setColorAt(1.0, QColor(255, 165, 0, 0))
+        self.wide_action_sector.setBrush(QBrush(gradient))
+        self.wide_action_sector.setZValue(4)  # Below the first sector
 
     def updateShadow(self, ball_x, ball_y):
         # Bestimme den Mittelpunkt des Spielers in Szenenkoordinaten.
@@ -94,6 +119,12 @@ class PlayerItem(DraggableEllipse):
             # Ensure the scene gets updated
             if self.action_sector.scene():
                 self.action_sector.scene().update(self.action_sector.boundingRect())
+                
+        if self.wide_action_sector:
+            player_center = self.scenePos() + self.rect().center()
+            self.wide_action_sector.updatePosition(player_center.x(), player_center.y(), ball_x, ball_y)
+            if self.wide_action_sector.scene():
+                self.wide_action_sector.scene().update(self.wide_action_sector.boundingRect())
     
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
