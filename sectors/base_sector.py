@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QGraphicsPathItem
-from PyQt5.QtGui import QBrush, QPen, QColor, QPainterPath
+from PyQt5.QtGui import QPen, QPainterPath
 from PyQt5.QtCore import Qt, QPointF
 
 class BaseSector(QGraphicsPathItem):

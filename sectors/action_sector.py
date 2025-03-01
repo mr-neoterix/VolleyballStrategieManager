@@ -1,6 +1,6 @@
 import math
-from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QBrush, QColor, QPen, QPainterPath, QRadialGradient
+from PyQt5.QtCore import QPointF
+from PyQt5.QtGui import QBrush, QColor, QPainterPath, QRadialGradient
 
 # Use absolute imports
 from sectors.base_sector import BaseSector

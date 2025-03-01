@@ -1,5 +1,4 @@
 import math
-from PyQt5.QtWidgets import QGraphicsPathItem
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QBrush, QPen, QColor, QPainterPath, QRadialGradient, QConicalGradient, QPixmap, QPainter, QTransform
 from .base_sector import BaseSector
