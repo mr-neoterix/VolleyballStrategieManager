@@ -7,15 +7,7 @@ from PyQt5.QtCore import Qt, QRectF
 from ball_item import BallItem, AttackSector
 from player_item import PlayerItem
 from core import players
-
-# Zeichnet das Volleyballfeld (Vogelperspektive)
-def drawCourt(scene):
-    scale = 30
-    court_width = 9 * scale
-    court_length = 18 * scale
-    scene.addRect(0, 0, court_width, court_length, QPen(Qt.black, 2))
-    scene.addLine(0, court_length/2, court_width, court_length/2, QPen(Qt.black, 2))
-    # Weitere Linien können hier hinzugefügt werden
+from volleyball_field import VolleyballField
 
 class ScalableGraphicsView(QGraphicsView):
     def resizeEvent(self, event):
@@ -25,18 +17,22 @@ class ScalableGraphicsView(QGraphicsView):
 def main():
     app = QApplication(sys.argv)
     scene = QGraphicsScene()
-    
-    # Spielfeldabmessungen
+
+    # Spielfeld erstellen und hinzufügen (immer im Hintergrund)
     scale = 30  # 30 Pixel pro Meter
+    volleyball_field = VolleyballField(scale)
+    scene.addItem(volleyball_field)
+    
+    # court_dimensions für weitere Elemente
     court_dimensions = {"width": 9*scale, "height": 18*scale}
     
-    drawCourt(scene)
+    #drawCourt(scene)  # Optional, wenn drawCourt weitere Elemente zeichnet. Andernfalls übernimmt VolleyballField die Feldzeichnung.
     
-    # Ball im oberen Spielfeldbereich
+    # Ball
     ball_radius = 8
     ball_diameter = 2 * ball_radius
     ball_x = 4.5 * scale
-    ball_y = 4.5 * scale  # obere Hälfte
+    ball_y = 4.5 * scale
     ball = BallItem(QRectF(0, 0, ball_diameter, ball_diameter), label="", court_dimensions=court_dimensions)
     ball.setPos(ball_x - ball_radius, ball_y - ball_radius)
     ball.setBrush(QBrush(QColor("yellow")))
@@ -44,7 +40,7 @@ def main():
     scene.addItem(ball)
 
     # Abwehrmannschaft
-    radius = 15
+    radius = 12
     diameter = 2 * radius
     defense_positions = [
         (4.5 * scale - radius, 10 * scale - radius),

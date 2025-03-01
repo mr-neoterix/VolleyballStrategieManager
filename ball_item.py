@@ -71,6 +71,7 @@ class AttackSector(QGraphicsPathItem):
         path = QPainterPath()
         # Spielfeldparameter (scale=30)
         court_width = 9 * 30
+        court_height = 18 * 30
         net_y = 270  # Untere Grenze des Angriffsbereichs (Netz)
         left_net = QPointF(0, net_y)
         right_net = QPointF(court_width, net_y)
@@ -107,13 +108,21 @@ class AttackSector(QGraphicsPathItem):
         painter.setPen(Qt.NoPen)
         painter.drawRect(0, 0, size, size)
         
-        # Konischer Gradient überlagern: startet bei 270° (Rot) und läuft zu Gelb bei 180° und 360°
+        # Berechne den Winkel vom Ball zur untersten Mitte des Spielfelds.
+        bottom_center = QPointF(court_width/2, court_height)
+        dx = bottom_center.x() - self.ball_x
+        dy = bottom_center.y() - self.ball_y
+        # Berechne den Winkel und negiere ihn, damit 0° am positiven x-Achse liegt und
+        # die Richtung im Uhrzeigersinn (Qt-Konvention) gemessen wird.
+        gradient_angle = (-math.degrees(math.atan2(dy, dx))) % 360
+        
+        # Konischer Gradient überlagern: Ausrichtung anhand des berechneten gradient_angle
         painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-        conical = QConicalGradient(QPointF(size/2, size/2), 270)
-        conical.setColorAt(0.0, QColor(255, 0, 0, 150))    # Rot bei 270°
-        conical.setColorAt(0.1, QColor(255, 255, 0, 0))      # Übergang (transparent)
-        conical.setColorAt(0.9, QColor(255, 255, 0, 0))      # Übergang (transparent)
-        conical.setColorAt(1.0, QColor(255, 0, 0, 150))    # Rot bei 270°
+        conical = QConicalGradient(QPointF(size/2, size/2), gradient_angle)
+        conical.setColorAt(0.0, QColor(255, 0, 0, 150))    # Rot bei Start (entspricht gradient_angle)
+        conical.setColorAt(0.1, QColor(255, 255, 0, 0))      # Übergang transparent
+        conical.setColorAt(0.9, QColor(255, 255, 0, 0))      # Übergang transparent
+        conical.setColorAt(1.0, QColor(255, 0, 0, 150))    # Rot wieder
         painter.setBrush(QBrush(conical))
         painter.drawRect(0, 0, size, size)
         painter.end()
@@ -127,7 +136,7 @@ class AttackSector(QGraphicsPathItem):
         painter2.end()
         combined = temp
         
-        # Richte den kombinierten Brush so aus, dass dessen Mittelpunkt dem Ballmittelpunkt entspricht
+        # Richte den kombinierten Brush so aus, dass dessen Mittelpunkt dem Ballmittelpunkt entspricht.
         combined_brush = QBrush(combined)
         transform = QTransform()
         transform.translate(self.ball_x - size/2, self.ball_y - size/2)

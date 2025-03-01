@@ -24,9 +24,9 @@ class PlayerItem(DraggableEllipse):
             return
         # Spieler-Radius (angenommen, der Spieler ist ein Kreis)
         R = self.rect().width() / 2
-        # Wenn d - R > 300 (Schattenradius), ist der Spieler außerhalb des Schattenbereichs
+        # Wenn d - R > 150 (Schattenradius), ist der Spieler außerhalb des Schattenbereichs
         # und der Schatten muss entfernt werden
-        if d + 2*R > 300:
+        if d + 2*R > 150:
             self.shadow.setPath(QPainterPath())
             return 
         # Winkel vom Ball zum Spielerzentrum
