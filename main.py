@@ -23,6 +23,11 @@ def main():
     volleyball_field = VolleyballField(scale)
     scene.addItem(volleyball_field)
     
+    # Setze ein fixes Scene-Rechteck (z.B. exakt das Spielfeld, ggf. inkl. Überhang)
+    scene.setSceneRect(-volleyball_field.overhang, 0,
+                       volleyball_field.court_width + 2*volleyball_field.overhang,
+                       volleyball_field.court_length)
+   
     # court_dimensions für weitere Elemente
     court_dimensions = {"width": 9*scale, "height": 18*scale}
     
