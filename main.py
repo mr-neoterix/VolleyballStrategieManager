@@ -1,13 +1,15 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QGraphicsEllipseItem, QGraphicsTextItem
+from PyQt5.QtWidgets import QApplication, QGraphicsScene, QGraphicsView
 from PyQt5.QtGui import QBrush, QPen, QColor
-from PyQt5.QtCore import Qt, QRectF
+from PyQt5.QtCore import Qt, QRectF, QPointF  # Added QPointF import here
 
-# Importiere die ausgelagerten Klassen
-from ball_item import BallItem, AttackSector
-from player_item import PlayerItem
+# Use absolute imports
+from components.player_item import PlayerItem
+from components.ball_item import BallItem
+from sectors.attack_sector import AttackSector
 from core import players
 from volleyball_field import VolleyballField
+from utils import CourtDimensions
 
 class ScalableGraphicsView(QGraphicsView):
     def resizeEvent(self, event):
@@ -18,30 +20,41 @@ def main():
     app = QApplication(sys.argv)
     scene = QGraphicsScene()
 
-    # Spielfeld erstellen und hinzufügen (immer im Hintergrund)
+    # Court setup
     scale = 30  # 30 Pixel pro Meter
     volleyball_field = VolleyballField(scale)
     scene.addItem(volleyball_field)
     
-    # Setze ein fixes Scene-Rechteck (z.B. exakt das Spielfeld, ggf. inkl. Überhang)
-    scene.setSceneRect(-volleyball_field.overhang, 0,
-                       volleyball_field.court_width + 2*volleyball_field.overhang,
-                       volleyball_field.court_length)
-   
-    # court_dimensions für weitere Elemente
-    court_dimensions = {"width": 9*scale, "height": 18*scale}
+    # Court dimensions
+    court_dims = CourtDimensions(scale)
     
+    # Set scene rectangle
+    scene.setSceneRect(-volleyball_field.overhang, 0,
+                       court_dims.width + 2*volleyball_field.overhang,
+                       court_dims.height)
+   
     # Ball
     ball_radius = 8
     ball_diameter = 2 * ball_radius
     ball_x = 4.5 * scale
     ball_y = 4.5 * scale
-    ball = BallItem(QRectF(0, 0, ball_diameter, ball_diameter), label="", court_dimensions=court_dimensions)
+    ball = BallItem(QRectF(0, 0, ball_diameter, ball_diameter), label="", court_dimensions=court_dims)
     ball.setPos(ball_x - ball_radius, ball_y - ball_radius)
     ball.setBrush(QBrush(QColor("yellow")))
     ball.setPen(QPen(Qt.black, 2))
+    ball.setZValue(500)  # High z-index but below players
 
-    # Abwehrmannschaft
+    # Attack sector
+    attack_sector = AttackSector(
+        QPointF(ball_x, ball_y),
+        court_width=court_dims.width,
+        court_height=court_dims.height,
+        net_y=court_dims.net_y
+    )
+    scene.addItem(attack_sector)
+    ball.link_sector(attack_sector)
+
+    # Defense team
     radius = 10
     diameter = 2 * radius
     defense_positions = [
@@ -53,39 +66,35 @@ def main():
         (6.5 * scale - radius, 11 * scale - radius),
     ]
     
-    # Sektor (Angriffssituation) als eigenes Top-Level-Item
-    attack_sector = AttackSector(ball_x, ball_y, radius=10 * scale)
-    scene.addItem(attack_sector)
-    ball.link_sector(attack_sector)
-    
+    # Create players and add their components in the right order
     for i, (x, y) in enumerate(defense_positions):
-        player = PlayerItem(QRectF(x, y, diameter, diameter), f"D{i+1}", ball)
+        player = PlayerItem(QRectF(x, y, diameter, diameter), f"D{i+1}", ball, court_dims)
         player.setBrush(QBrush(QColor("green")))
         
-        # Initialisiere Aktionssektoren und füge beide zur Szene hinzu
-        player.init_action_sector()
+        # Initialize sectors
+        player.init_sectors()
+
+        # Add all sectors first (in reverse z-order)
+        if "backward" in player.sectors:
+            scene.addItem(player.sectors["backward"])
+        if "wide" in player.sectors:
+            scene.addItem(player.sectors["wide"])
+        if "primary" in player.sectors:
+            scene.addItem(player.sectors["primary"])
         
-        # Füge den breiten Sektor zuerst hinzu (niedrigerer z-Index)
-        if player.wide_action_sector:
-            scene.addItem(player.wide_action_sector)
-            
-        # Dann den schmalen Sektor
-        if player.action_sector:
-            scene.addItem(player.action_sector)
-        
-        # Füge Schlagschatten hinzu
+        # Add shadow
         scene.addItem(player.shadow)
         
-        # Füge Spieler zur Szene hinzu (nach Schatten und Aktionssektor)
+        # Add player last (highest z-index)
         scene.addItem(player)
         
-        # Füge Spieler zur globalen Liste hinzu
+        # Add to global player list
         players.append(player)
-        
-    # Füge den Ball nach den Spielern hinzu (erscheint über dem Spielfeld, aber unter den Spielern)
-    ball.setZValue(500)  # Höher als das Spielfeld, aber niedriger als die Spieler
+    
+    # Add ball to scene (after sectors but before players)
     scene.addItem(ball)
     
+    # Create and show view
     view = ScalableGraphicsView(scene)
     view.setWindowTitle("Volleyball Angriffssituation")
     view.resize(1600, 1600)
