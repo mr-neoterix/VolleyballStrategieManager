@@ -1,8 +1,9 @@
 import math
-from PyQt5.QtWidgets import QGraphicsPathItem
+from PyQt5.QtWidgets import QGraphicsPathItem, QGraphicsLineItem
 from PyQt5.QtGui import QBrush, QColor, QPen, QPainterPath, QRadialGradient
 from PyQt5.QtCore import QRectF, Qt, QPointF
 from core import DraggableEllipse
+from player_action import ActionSector
 
 class PlayerItem(DraggableEllipse):
     def __init__(self, rect, label="", ball=None):
@@ -13,6 +14,26 @@ class PlayerItem(DraggableEllipse):
         self.shadow.setZValue(self.zValue() - 1)  # Hinter den Spieler legen
         self.shadow.setBrush(QBrush(QColor(0, 255, 0, 128)))  # Halbtransparentes Grün
         self.shadow.setPen(QPen(Qt.NoPen))
+        
+        # Nur Aktionssektor, keine Blickrichtungslinie mehr
+        self.action_sector = None
+        
+        # Initialisiere Aktionssektor, wenn Ball vorhanden ist
+        if ball:
+            self.init_action_sector()
+            
+    def init_action_sector(self):
+        if not self.ball:
+            return
+            
+        # Erstelle den Aktionssektor
+        ball_rect = self.ball.rect()
+        ball_center = self.ball.scenePos() + QPointF(ball_rect.width()/2, ball_rect.height()/2)
+        player_center = self.scenePos() + self.rect().center()
+        
+        self.action_sector = ActionSector(player_center.x(), player_center.y(), 
+                                         ball_center.x(), ball_center.y())
+        self.action_sector.setZValue(self.zValue() - 2)  # Unter Schlagschatten
 
     def updateShadow(self, ball_x, ball_y):
         # Bestimme den Mittelpunkt des Spielers in Szenenkoordinaten.
@@ -62,6 +83,17 @@ class PlayerItem(DraggableEllipse):
         gradient.setColorAt(0.9, QColor(0, 255, 0, 128))
         gradient.setColorAt(1.0, QColor(0, 255, 0, 0))
         self.shadow.setBrush(QBrush(gradient))
+        
+        # Aktualisiere auch den Aktionssektor
+        self.update_action_sector(ball_x, ball_y)
+    
+    def update_action_sector(self, ball_x, ball_y):
+        if self.action_sector:
+            player_center = self.scenePos() + self.rect().center()
+            self.action_sector.updatePosition(player_center.x(), player_center.y(), ball_x, ball_y)
+            # Ensure the scene gets updated
+            if self.action_sector.scene():
+                self.action_sector.scene().update(self.action_sector.boundingRect())
     
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
@@ -70,3 +102,4 @@ class PlayerItem(DraggableEllipse):
             ball_rect = self.ball.rect()
             ball_center = self.ball.scenePos() + QPointF(ball_rect.width()/2, ball_rect.height()/2)
             self.updateShadow(ball_center.x(), ball_center.y())
+            self.update_action_sector(ball_center.x(), ball_center.y())

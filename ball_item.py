@@ -47,10 +47,12 @@ class BallItem(DraggableEllipse):
         ball_center = new_pos + QPointF(ball_rect.width()/2, ball_rect.height()/2)
 
         self.update_sector_position()
-        # Aktualisiere auch alle Spieler-Schlagschatten (z.B. über eine globale Liste)
-        from core import players  # falls du players global in players.py oder main verwaltest
+        # Aktualisiere auch alle Spieler-Schlagschatten und ActionSectors
+        from core import players
         for player in players:
             player.updateShadow(ball_center.x(), ball_center.y())
+            # Stelle sicher, dass der ActionSector aktualisiert wird
+            player.update_action_sector(ball_center.x(), ball_center.y())
 
 # Neue Klasse für den Schlagsektor (Winkelbereich der möglichen Schlagrichtungen)
 class AttackSector(QGraphicsPathItem):

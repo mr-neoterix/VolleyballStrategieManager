@@ -31,8 +31,6 @@ def main():
     # court_dimensions für weitere Elemente
     court_dimensions = {"width": 9*scale, "height": 18*scale}
     
-    #drawCourt(scene)  # Optional, wenn drawCourt weitere Elemente zeichnet. Andernfalls übernimmt VolleyballField die Feldzeichnung.
-    
     # Ball
     ball_radius = 8
     ball_diameter = 2 * ball_radius
@@ -45,7 +43,7 @@ def main():
     scene.addItem(ball)
 
     # Abwehrmannschaft
-    radius = 12
+    radius = 10
     diameter = 2 * radius
     defense_positions = [
         (4.5 * scale - radius, 10 * scale - radius),
@@ -59,8 +57,19 @@ def main():
     for i, (x, y) in enumerate(defense_positions):
         player = PlayerItem(QRectF(x, y, diameter, diameter), f"D{i+1}", ball)
         player.setBrush(QBrush(QColor("green")))
-        scene.addItem(player)
+        
+        # Füge Schlagschatten hinzu
         scene.addItem(player.shadow)
+        
+        # Initialisiere Aktionssektor und füge ihn zur Szene hinzu
+        player.init_action_sector()
+        if player.action_sector:
+            scene.addItem(player.action_sector)
+        
+        # Füge Spieler zur Szene hinzu (nach Schatten und Aktionssektor)
+        scene.addItem(player)
+        
+        # Füge Spieler zur globalen Liste hinzu
         players.append(player)
         
     # Sektor (Angriffssituation) als eigenes Top-Level-Item
