@@ -13,19 +13,19 @@ class CourtDimensions:
         self.attack_line_y = self.net_y - 3 * scale
         self.defense_line_y = self.net_y + 3 * scale
 
-def calculate_distance(p1, p2):
+def calculate_distance(p1: QPointF, p2: QPointF) -> float:
     """Calculate distance between two points"""
     dx = p2.x() - p1.x()
     dy = p2.y() - p1.y()
     return math.sqrt(dx*dx + dy*dy)
 
-def calculate_angle(from_point, to_point):
+def calculate_angle(from_point: QPointF, to_point: QPointF) -> float:
     """Calculate angle in degrees from one point to another"""
     dx = to_point.x() - from_point.x()
     dy = to_point.y() - from_point.y()
     return (-math.degrees(math.atan2(dy, dx))) % 360
 
-def get_intersection_with_net(player_pos, ball_pos, net_y):
+def get_intersection_with_net(player_pos: QPointF, ball_pos: QPointF, net_y: float) -> QPointF:
     """Calculate intersection of player-ball line with the net"""
     dx = ball_pos.x() - player_pos.x()
     dy = ball_pos.y() - player_pos.y()
