@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem
-from PyQt5.QtGui import QBrush, QPen, QColor, QFont  # Updated: added QFont
+from PyQt5.QtGui import QBrush, QPen, QColor
 from PyQt5.QtCore import Qt, QRectF
 
 # Globale Liste für Spieler (PlayerItems)
