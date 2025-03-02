@@ -1,5 +1,8 @@
 import math
 from PyQt5.QtCore import QPointF
+from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem
+from PyQt5.QtGui import QBrush, QPen, QColor
+from PyQt5.QtCore import Qt, QRectF
 
 # Constants
 DEFAULT_SCALE = 30  # 30 pixels per meter
@@ -42,3 +45,37 @@ def get_intersection_with_net(player_pos: QPointF, ball_pos: QPointF, net_y: flo
     # Calculate intersection using line equation
     intersection_x = player_pos.x() + (net_y - player_pos.y()) * dx / dy
     return QPointF(intersection_x, net_y)
+
+class DraggableEllipse(QGraphicsEllipseItem):
+    def __init__(self, rect, label=""):
+        super().__init__(rect)
+        self.setFlags(QGraphicsEllipseItem.ItemIsSelectable | QGraphicsEllipseItem.ItemIsMovable)
+        self.setBrush(QBrush(QColor("blue")))
+        self.setPen(QPen(Qt.black, 2))
+        if label:
+            text = QGraphicsTextItem(label, self)
+            font = text.font()
+            original_size = font.pointSize() if font.pointSize() > 0 else 12
+            font.setPointSize(original_size // 2)
+            text.setFont(font)
+            text.setDefaultTextColor(Qt.white)
+            text.setPos(rect.x() + rect.width()/2 - text.boundingRect().width()/2,
+                        rect.y() + rect.height()/2 - text.boundingRect().height()/2)
+        self.movement_boundary: QRectF = None
+
+    def set_movement_boundary(self, boundary: QRectF):
+        self.movement_boundary = boundary
+
+    def mouseMoveEvent(self, event):
+        super().mouseMoveEvent(event)
+        if self.movement_boundary:
+            pos = self.pos()
+            r = self.rect()
+            min_x = self.movement_boundary.x()
+            max_x = self.movement_boundary.x() + self.movement_boundary.width() - r.width()
+            new_x = max(min_x, min(pos.x(), max_x))
+            min_y = self.movement_boundary.y()
+            max_y = self.movement_boundary.y() + self.movement_boundary.height() - r.height()
+            new_y = max(min_y, min(pos.y(), max_y))
+            if new_x != pos.x() or new_y != pos.y():
+                self.setPos(new_x, new_y)

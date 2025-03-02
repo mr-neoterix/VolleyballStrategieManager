@@ -1,8 +1,8 @@
 from PyQt5.QtCore import QPointF, QRectF
 
 # Use absolute imports
-from core import DraggableEllipse, players
-from utils import CourtDimensions
+from utils import DraggableEllipse, CourtDimensions
+from volleyball_field import players
 
 class BallItem(DraggableEllipse):
     def __init__(self, rect, label="", court_dimensions=None):

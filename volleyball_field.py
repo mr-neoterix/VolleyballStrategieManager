@@ -44,3 +44,6 @@ class VolleyballField(QGraphicsItem):
         painter.setPen(defense_pen)
         defense_line = QLineF(0, defense_line_y, self.court_width, defense_line_y)
         painter.drawLine(defense_line)
+
+# Add global player list for VolleyballField
+players = []

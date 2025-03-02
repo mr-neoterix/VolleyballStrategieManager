@@ -3,7 +3,7 @@ from PyQt5.QtGui import QPen, QPainterPath
 from PyQt5.QtCore import Qt, QPointF
 
 class BaseSector(QGraphicsPathItem):
-    def __init__(self, center=QPointF(), z_index=0):
+    def __init__(self, center:QPointF=QPointF(), z_index=0):
         super().__init__()
         self.center = center
         self.path = QPainterPath()

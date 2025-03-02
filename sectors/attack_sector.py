@@ -1,10 +1,10 @@
 import math
 from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QBrush, QPen, QColor, QPainterPath, QRadialGradient, QConicalGradient, QPixmap, QPainter, QTransform
+from PyQt5.QtGui import QBrush, QColor, QPainterPath, QRadialGradient, QConicalGradient, QPixmap, QPainter, QTransform
 from .base_sector import BaseSector
 
 class AttackSector(BaseSector):
-    def __init__(self, ball_pos, court_width=270, court_height=540, net_y=270, radius=300):
+    def __init__(self, ball_pos:QPointF, court_width=270, court_height=540, net_y=270, radius=300):
         super().__init__(ball_pos, z_index=2)
         self.ball_pos = ball_pos
         self.court_width = court_width

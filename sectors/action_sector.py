@@ -15,7 +15,7 @@ class ActionSectorParams:
         self.backwards = backwards
 
 class ActionSector(BaseSector):
-    def __init__(self, player_pos, ball_pos, params=None, scale=30, net_y=270, z_index=5):
+    def __init__(self, player_pos:QPointF, ball_pos:QPointF, params:ActionSectorParams=None, scale=30, net_y=270, z_index=5):
         super().__init__(player_pos, z_index)
         self.player_pos = player_pos
         self.ball_pos = ball_pos

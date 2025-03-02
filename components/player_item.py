@@ -4,9 +4,8 @@ from PyQt5.QtGui import QBrush, QColor, QPen, QPainterPath, QRadialGradient
 from PyQt5.QtCore import QRectF, Qt, QPointF
 
 # Use absolute imports instead of relative
-from core import DraggableEllipse
+from utils import DraggableEllipse, CourtDimensions
 from sectors.action_sector import ActionSector, ActionSectorParams
-from utils import CourtDimensions
 
 class PlayerItem(DraggableEllipse):
     def __init__(self, rect, label="", ball=None, court_dims=None):

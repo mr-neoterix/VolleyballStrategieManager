@@ -7,8 +7,7 @@ from PyQt5.QtCore import Qt, QRectF, QPointF  # Added QPointF import here
 from components.player_item import PlayerItem
 from components.ball_item import BallItem
 from sectors.attack_sector import AttackSector
-from core import players
-from volleyball_field import VolleyballField
+from volleyball_field import VolleyballField, players
 from utils import CourtDimensions
 
 class ScalableGraphicsView(QGraphicsView):
