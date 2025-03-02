@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem
-from PyQt5.QtGui import QBrush, QPen, QColor
+from PyQt5.QtGui import QBrush, QPen, QColor, QFont  # Updated: added QFont
 from PyQt5.QtCore import Qt, QRectF
 
 # Globale Liste für Spieler (PlayerItems)
@@ -17,6 +17,12 @@ class DraggableEllipse(QGraphicsEllipseItem):
         # Beschriftung hinzufügen
         if label:
             text = QGraphicsTextItem(label, self)
+            # Halbiere die Schriftgröße:
+            font = text.font()
+            # Falls keine explizite Punktgröße eingestellt wurde, wird eine Standardgröße verwendet.
+            original_size = font.pointSize() if font.pointSize() > 0 else 12
+            font.setPointSize(original_size // 2)
+            text.setFont(font)
             text.setDefaultTextColor(Qt.white)
             # Zentriere die Beschriftung innerhalb des Kreises
             text.setPos(rect.x() + rect.width()/2 - text.boundingRect().width()/2,

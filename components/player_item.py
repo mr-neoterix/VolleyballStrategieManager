@@ -18,7 +18,7 @@ class PlayerItem(DraggableEllipse):
         self.court_dims = court_dims or CourtDimensions()
         self.half_court = self.court_dims.height / 2
         # New: Set movement boundary for the ball (court boundaries)
-        boundary = QRectF(0, self.half_court, self.court_dims.width, self.court_dims.height)
+        boundary = QRectF(-30, self.half_court, self.court_dims.width + 60, self.half_court)
         self.set_movement_boundary(boundary)
 
         # Erstelle den Schlagschatten

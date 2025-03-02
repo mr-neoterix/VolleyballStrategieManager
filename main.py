@@ -68,7 +68,10 @@ def main():
     
     # Create players and add their components in the right order
     for i, (x, y) in enumerate(defense_positions):
-        player = PlayerItem(QRectF(x, y, diameter, diameter), f"D{i+1}", ball, court_dims)
+        # New: Create player with rect originating at (0,0)
+        player = PlayerItem(QRectF(0, 0, diameter, diameter), f"D{i+1}", ball, court_dims)
+        # Set the actual position
+        player.setPos(x, y)
         player.setBrush(QBrush(QColor("green")))
         
         # Initialize sectors
