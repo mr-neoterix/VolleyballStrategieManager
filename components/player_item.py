@@ -16,7 +16,11 @@ class PlayerItem(DraggableEllipse):
         
         self.ball = ball  # Referenz zum Ball
         self.court_dims = court_dims or CourtDimensions()
-        
+        self.half_court = self.court_dims.height / 2
+        # New: Set movement boundary for the ball (court boundaries)
+        boundary = QRectF(0, self.half_court, self.court_dims.width, self.court_dims.height)
+        self.set_movement_boundary(boundary)
+
         # Erstelle den Schlagschatten
         self.shadow = QGraphicsPathItem()
         self.shadow.setZValue(10)  # Higher than default but below player
