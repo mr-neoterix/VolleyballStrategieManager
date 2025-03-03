@@ -45,7 +45,7 @@ class PlayerItem(DraggableEllipse):
         # Primary attack sector
         primary_params = ActionSectorParams(
             max_radius_meters=6,
-            angle_width=35,
+            angle_width=30,
             color=QColor(0, 255, 0, 100)
         )
         self.sectors["primary"] = ActionSector(
