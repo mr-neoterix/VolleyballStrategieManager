@@ -13,6 +13,7 @@ class BallItem(DraggableEllipse):
         # New: Set movement boundary for the ball (court boundaries)
         boundary = QRectF(0, 0, self.court_dims.width, self.half_court)
         self.set_movement_boundary(boundary)
+        self.is_ball = True  # Markiere den Ball für die Erkennung
 
     def link_sector(self, sector):
         self.attack_sector = sector

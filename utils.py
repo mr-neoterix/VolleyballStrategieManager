@@ -52,15 +52,16 @@ class DraggableEllipse(QGraphicsEllipseItem):
         self.setFlags(QGraphicsEllipseItem.ItemIsSelectable | QGraphicsEllipseItem.ItemIsMovable)
         self.setBrush(QBrush(QColor("blue")))
         self.setPen(QPen(Qt.black, 2))
+        self.text_item = None
         if label:
-            text = QGraphicsTextItem(label, self)
-            font = text.font()
+            self.text_item = QGraphicsTextItem(label, self)
+            font = self.text_item.font()
             original_size = font.pointSize() if font.pointSize() > 0 else 12
             font.setPointSize(original_size // 2)
-            text.setFont(font)
-            text.setDefaultTextColor(Qt.white)
-            text.setPos(rect.x() + rect.width()/2 - text.boundingRect().width()/2,
-                        rect.y() + rect.height()/2 - text.boundingRect().height()/2)
+            self.text_item.setFont(font)
+            self.text_item.setDefaultTextColor(Qt.white)
+            self.text_item.setPos(rect.x() + rect.width()/2 - self.text_item.boundingRect().width()/2,
+                        rect.y() + rect.height()/2 - self.text_item.boundingRect().height()/2)
         self.movement_boundary: QRectF = None
 
     def set_movement_boundary(self, boundary: QRectF):
@@ -79,3 +80,11 @@ class DraggableEllipse(QGraphicsEllipseItem):
             new_y = max(min_y, min(pos.y(), max_y))
             if new_x != pos.x() or new_y != pos.y():
                 self.setPos(new_x, new_y)
+
+    def update_label(self, new_label):
+        if self.text_item:
+            self.text_item.setPlainText(new_label)
+            # Zentriere den Text neu
+            rect = self.rect()
+            self.text_item.setPos(rect.x() + rect.width()/2 - self.text_item.boundingRect().width()/2,
+                                rect.y() + rect.height()/2 - self.text_item.boundingRect().height()/2)

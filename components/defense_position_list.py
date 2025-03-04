@@ -1,0 +1,291 @@
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QListWidget, 
+                             QInputDialog, QMessageBox, QGraphicsPathItem, QHBoxLayout,
+                             QFileDialog, QGraphicsTextItem)
+from PyQt5.QtCore import Qt, QPointF
+from PyQt5.QtGui import QPen, QColor, QPainterPath, QBrush
+from defense_positions import DefensePositionManager, DefensePosition
+import math
+
+class DefensePositionLines(QGraphicsPathItem):
+    def __init__(self, position_manager):
+        super().__init__()
+        self.position_manager = position_manager
+        self.setZValue(1)  # Unter den Spielern aber über dem Spielfeld
+        self.setPen(QPen(QColor(255, 255, 0, 128), 2))  # Halbtransparentes Gelb
+        self.setBrush(QBrush(Qt.NoBrush))
+        self.update_path()
+    
+    def orientation(self, p, q, r):
+        """Berechnet die Orientierung des Punktes r relativ zur Linie pq."""
+        val = (q.y() - p.y()) * (r.x() - q.x()) - (q.x() - p.x()) * (r.y() - q.y())
+        if val == 0:
+            return 0  # Kollinear
+        return 1 if val > 0 else 2  # Im Uhrzeigersinn oder gegen den Uhrzeigersinn
+    
+    def graham_scan(self, points):
+        """Berechnet die konvexe Hülle der Punkte mit dem Graham-Scan-Algorithmus."""
+        n = len(points)
+        if n < 3:
+            return points
+            
+        # Finde den untersten Punkt (und bei Gleichheit den linkesten)
+        bottom = 0
+        for i in range(1, n):
+            if points[i].y() > points[bottom].y() or \
+               (points[i].y() == points[bottom].y() and points[i].x() < points[bottom].x()):
+                bottom = i
+                
+        # Tausche den untersten Punkt mit dem ersten Punkt
+        points[0], points[bottom] = points[bottom], points[0]
+        
+        # Sortiere die restlichen Punkte nach Polarwinkel und Abstand
+        p0 = points[0]
+        points[1:] = sorted(points[1:], 
+                          key=lambda p: (math.atan2(p.y() - p0.y(), p.x() - p0.x()),
+                                       (p.x() - p0.x())**2 + (p.y() - p0.y())**2))
+        
+        # Initialisiere den Stack mit den ersten drei Punkten
+        stack = [points[0], points[1]]
+        
+        # Verarbeite die restlichen Punkte
+        for i in range(2, n):
+            while len(stack) > 1 and self.orientation(stack[-2], stack[-1], points[i]) != 2:
+                stack.pop()
+            stack.append(points[i])
+            
+        return stack
+    
+    def update_path(self):
+        path = QPainterPath()
+        positions = self.position_manager.get_all_positions()
+        
+        if len(positions) < 2:
+            self.setPath(path)
+            return
+            
+        # Extrahiere die Ballpositionen
+        ball_positions = [pos.ball_pos for pos in positions]
+        
+        # Berechne die konvexe Hülle
+        hull = self.graham_scan(ball_positions)
+        
+        # Zeichne die Linien entlang der konvexen Hülle
+        if len(hull) > 0:
+            path.moveTo(hull[0].x(), hull[0].y())
+            for i in range(1, len(hull)):
+                path.lineTo(hull[i].x(), hull[i].y())
+            # Schließe den Pfad
+            path.lineTo(hull[0].x(), hull[0].y())
+        
+        self.setPath(path)
+
+class DefensePositionList(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.position_manager = DefensePositionManager()
+        self.position_lines = None
+        self.setFixedWidth(200)  # Fixe Breite für das gesamte Widget
+        self.setup_ui()
+        # Lade die gespeicherten Positionen
+        self.position_manager.load_positions()
+        self.update_list()
+        
+        # Erstelle Text-Item für die Koordinatenanzeige
+        self.coord_label = QGraphicsTextItem()
+        self.coord_label.setDefaultTextColor(Qt.white)
+        self.coord_label.setZValue(1000)  # Über allen anderen Elementen
+        if self.parent() and self.parent().scene():
+            self.parent().scene().addItem(self.coord_label)
+    
+    def pixel_to_meters(self, x: float, y: float) -> tuple[float, float]:
+        """Konvertiert Pixel-Koordinaten in Meter."""
+        # Hole den scale-Faktor aus dem VolleyballField
+        scale = 30  # 30 Pixel pro Meter (definiert in VolleyballField)
+        meters_x = x / scale
+        meters_y = y / scale
+        return meters_x, meters_y
+    
+    def update_coord_label(self, x: float, y: float):
+        """Aktualisiert die Koordinatenanzeige."""
+        meters_x, meters_y = self.pixel_to_meters(x, y)
+        self.coord_label.setPlainText(f"Ball: {meters_x:.1f}m / {meters_y:.1f}m")
+        # Positioniere das Label oben links
+        self.coord_label.setPos(10, 10)
+    
+    def setup_ui(self):
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)  # Keine Ränder
+        
+        # Speichern-Button
+        self.save_button = QPushButton("Aktuelle Stellung speichern")
+        self.save_button.clicked.connect(self.save_current_position)
+        layout.addWidget(self.save_button)
+        
+        # Liste der Stellungen
+        self.list_widget = QListWidget()
+        self.list_widget.itemClicked.connect(self.load_position)
+        layout.addWidget(self.list_widget)
+        
+        # Button-Layout für Löschen
+        button_layout = QHBoxLayout()
+        button_layout.setContentsMargins(0, 0, 0, 0)  # Keine Ränder
+        self.delete_button = QPushButton("Stellung löschen")
+        self.delete_button.clicked.connect(self.delete_position)
+        self.delete_button.setEnabled(False)  # Initial deaktiviert
+        button_layout.addWidget(self.delete_button)
+        layout.addLayout(button_layout)
+        
+        self.setLayout(layout)
+        
+        # Erstelle die Linien
+        self.position_lines = DefensePositionLines(self.position_manager)
+        if self.parent() and self.parent().scene():
+            self.parent().scene().addItem(self.position_lines)
+        
+        # Verbinde die Auswahl in der Liste mit dem Lösch-Button
+        self.list_widget.itemSelectionChanged.connect(self.update_delete_button)
+    
+    def update_delete_button(self):
+        """Aktiviert/Deaktiviert den Lösch-Button basierend auf der Auswahl."""
+        self.delete_button.setEnabled(bool(self.list_widget.selectedItems()))
+    
+    def delete_position(self):
+        """Löscht die ausgewählte Stellung."""
+        selected_items = self.list_widget.selectedItems()
+        if not selected_items:
+            return
+            
+        index = self.list_widget.row(selected_items[0])
+        position = self.position_manager.get_position(index)
+        
+        # Bestätigungsdialog
+        reply = QMessageBox.question(
+            self, 
+            "Stellung löschen",
+            f"Möchten Sie die Stellung '{position.name}' wirklich löschen?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            # Entferne die Position aus dem Manager
+            self.position_manager.delete_position(index)
+            self.update_list()
+            # Aktualisiere die Linien
+            if self.position_lines:
+                self.position_lines.update_path()
+    
+    def save_current_position(self):
+        # Hole die aktuelle Szene
+        scene = self.parent().scene()
+        if not scene:
+            return
+        
+        # Hole den Ball
+        ball = None
+        for item in scene.items():
+            if hasattr(item, 'is_ball') and item.is_ball:
+                ball = item
+                break
+        
+        if not ball:
+            QMessageBox.warning(self, "Fehler", "Kein Ball gefunden!")
+            return
+        
+        # Hole die Spielerpositionen
+        player_positions = {}
+        for item in scene.items():
+            if isinstance(item, self.parent().player_class):
+                player_positions[item.label] = item.scenePos() + item.rect().center()
+        
+        if not player_positions:
+            QMessageBox.warning(self, "Fehler", "Keine Spieler gefunden!")
+            return
+        
+        # Berechne den vorgeschlagenen Namen mit Koordinaten in Metern
+        ball_center = ball.scenePos() + ball.rect().center()
+        meters_x, meters_y = self.pixel_to_meters(ball_center.x(), ball_center.y())
+        suggested_name = f"Ball ({meters_x:.1f}m/{meters_y:.1f}m)"
+        
+        # Frage nach dem Namen der Stellung
+        name, ok = QInputDialog.getText(self, "Stellung speichern", 
+                                      "Bitte geben Sie einen Namen für diese Stellung ein:",
+                                      text=suggested_name)
+        if ok and name:
+            # Speichere die Stellung
+            self.position_manager.add_position(
+                name,
+                ball_center,
+                player_positions
+            )
+            self.update_list()
+            # Aktualisiere die Linien
+            if self.position_lines:
+                self.position_lines.update_path()
+    
+    def load_position(self, item):
+        index = self.list_widget.row(item)
+        position = self.position_manager.get_position(index)
+        
+        # Hole die aktuelle Szene
+        scene = self.parent().scene()
+        if not scene:
+            return
+        
+        # Setze die Ballposition
+        ball = None
+        for scene_item in scene.items():
+            if hasattr(scene_item, 'is_ball') and scene_item.is_ball:
+                ball = scene_item
+                ball_rect = ball.rect()
+                ball.setPos(position.ball_pos.x() - ball_rect.width()/2,
+                           position.ball_pos.y() - ball_rect.height()/2)
+                # Aktualisiere die Koordinatenanzeige
+                self.update_coord_label(position.ball_pos.x(), position.ball_pos.y())
+                # Aktualisiere den Angriffssektor des Balls
+                ball.update_sector_position()
+                break
+        
+        if not ball:
+            return
+            
+        # Aktualisiere die Ballposition für die Sektoren
+        ball_center = ball.scenePos() + ball.rect().center()
+        
+        # Setze die Spielerpositionen und aktualisiere ihre Sektoren
+        for scene_item in scene.items():
+            if isinstance(scene_item, self.parent().player_class):
+                if scene_item.label in position.player_positions:
+                    player_pos = position.player_positions[scene_item.label]
+                    player_rect = scene_item.rect()
+                    scene_item.setPos(player_pos.x() - player_rect.width()/2,
+                                    player_pos.y() - player_rect.height()/2)
+                    # Aktualisiere die Sektoren und Schatten
+                    scene_item.updateShadow(ball_center.x(), ball_center.y())
+                    scene_item.update_sectors(ball_center.x(), ball_center.y())
+    
+    def update_list(self):
+        self.list_widget.clear()
+        for position in self.position_manager.get_all_positions():
+            self.list_widget.addItem(position.name)
+    
+    def check_and_interpolate(self, ball_pos):
+        # Prüfe, ob wir genug Positionen haben
+        if len(self.position_manager.get_all_positions()) < 2:
+            return
+            
+        # Interpoliere die Spielerpositionen
+        interpolated_positions = self.position_manager.interpolate_positions(ball_pos)
+        
+        # Aktualisiere die Spielerpositionen
+        scene = self.parent().scene()
+        if not scene:
+            return
+        
+        for scene_item in scene.items():
+            if isinstance(scene_item, self.parent().player_class):
+                if scene_item.label in interpolated_positions:
+                    player_pos = interpolated_positions[scene_item.label]
+                    player_rect = scene_item.rect()
+                    scene_item.setPos(player_pos.x() - player_rect.width()/2,
+                                    player_pos.y() - player_rect.height()/2) 

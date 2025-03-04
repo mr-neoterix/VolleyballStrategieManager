@@ -1,15 +1,17 @@
 import math
-from PyQt5.QtWidgets import QGraphicsPathItem
+from PyQt5.QtWidgets import QGraphicsPathItem, QDialog
 from PyQt5.QtGui import QBrush, QColor, QPen, QPainterPath, QRadialGradient
 from PyQt5.QtCore import QRectF, Qt, QPointF
 
 # Use absolute imports instead of relative
 from utils import DraggableEllipse, CourtDimensions
 from sectors.action_sector import ActionSector, ActionSectorParams
+from components.player_edit_dialog import PlayerEditDialog
 
 class PlayerItem(DraggableEllipse):
     def __init__(self, rect, label="", ball=None, court_dims=None):
         super().__init__(rect, label)
+        self.label = label  # Speichere das Label
         # Set a very high z-value for the player itself
         self.setZValue(1000)  # Ensure player is always on top
         
@@ -121,10 +123,10 @@ class PlayerItem(DraggableEllipse):
             gradient.setColorAt(0.0, QColor(0, 255, 0, 0))
             fraction = d / arc_radius
             fraction = max(0, min(fraction, 1))
-            gradient.setColorAt(fraction - 0.01, QColor(0, 255, 0, 0))
-            gradient.setColorAt(fraction, QColor(0, 255, 0, 128))
-            gradient.setColorAt(0.9, QColor(0, 255, 0, 128))
-            gradient.setColorAt(1.0, QColor(0, 255, 0, 0))
+            gradient.setColorAt(fraction - 0.01, QColor(0, 255, 255, 0))
+            gradient.setColorAt(fraction, QColor(0, 255, 255, 100))
+            gradient.setColorAt(0.9, QColor(0, 255, 255, 100))
+            gradient.setColorAt(1.0, QColor(0, 255, 255, 0))
             self.shadow.setBrush(QBrush(gradient))
         
         # Immer die Sektoren aktualisieren, unabhängig davon, 
@@ -149,3 +151,11 @@ class PlayerItem(DraggableEllipse):
             # Statt der Zeile unten sollten wir die update_sectors Funktion verwenden
             # self.update_action_sector(ball_center.x(), ball_center.y())  # Diese Zeile ist jetzt veraltet
             self.update_sectors(ball_center.x(), ball_center.y())
+
+    def mouseDoubleClickEvent(self, event):
+        # Öffne das Edit-Dialog
+        dialog = PlayerEditDialog(self, self.scene().views()[0])
+        if dialog.exec_() == QDialog.Accepted:
+            # Aktualisiere das Label
+            self.label = dialog.label_edit.text()
+            self.update_label(self.label)

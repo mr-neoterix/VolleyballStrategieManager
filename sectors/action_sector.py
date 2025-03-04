@@ -40,6 +40,9 @@ class ActionSector(BaseSector):
         else:
             viewing_angle = calculate_angle(self.player_pos, self.ball_pos)
         
+        # Update max_radius based on current params
+        self.max_radius = self.params.max_radius_meters * self.scale
+        
         # Get distance to intersection with net, or max_radius if no intersection
         distance_to_intersection = self.max_radius
         
