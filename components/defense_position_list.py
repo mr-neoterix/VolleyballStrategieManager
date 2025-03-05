@@ -11,8 +11,9 @@ class DefensePositionLines(QGraphicsPathItem):
         super().__init__()
         self.position_manager = position_manager
         self.setZValue(1)  # Unter den Spielern aber über dem Spielfeld
-        self.setPen(QPen(QColor(255, 255, 0, 128), 2))  # Halbtransparentes Gelb
+        self.setPen(QPen(QColor(255, 0, 0, 128), 1))  # Halbtransparentes Rot
         self.setBrush(QBrush(Qt.NoBrush))
+        self.circle_radius = 5  # Radius der roten Kreise
         self.update_path()
     
     def orientation(self, p, q, r):
@@ -22,60 +23,137 @@ class DefensePositionLines(QGraphicsPathItem):
             return 0  # Kollinear
         return 1 if val > 0 else 2  # Im Uhrzeigersinn oder gegen den Uhrzeigersinn
     
-    def graham_scan(self, points):
-        """Berechnet die konvexe Hülle der Punkte mit dem Graham-Scan-Algorithmus."""
-        n = len(points)
-        if n < 3:
-            return points
+    def in_circle(self, a, b, c, d):
+        """Prüft, ob Punkt d im Umkreis des Dreiecks abc liegt."""
+        # Berechne die Determinante
+        ax, ay = a.x(), a.y()
+        bx, by = b.x(), b.y()
+        cx, cy = c.x(), c.y()
+        dx, dy = d.x(), d.y()
+        
+        det = (ax - dx) * ((by - dy) * (cx*2 + cy*2 - dx*2 - dy*2) - (cy - dy) * (bx*2 + by*2 - dx*2 - dy*2)) - \
+              (ay - dy) * ((bx - dx) * (cx*2 + cy*2 - dx*2 - dy*2) - (cx - dx) * (bx*2 + by*2 - dx*2 - dy*2)) + \
+              (ax*2 + ay*2 - dx*2 - dy*2) * ((bx - dx) * (cy - dy) - (cx - dx) * (by - dy))
+        
+        return det > 0
+    
+    def find_containing_triangle(self, point, points):
+        """Findet das Dreieck, das den Punkt enthält."""
+        if len(points) < 3:
+            return None
             
-        # Finde den untersten Punkt (und bei Gleichheit den linkesten)
-        bottom = 0
-        for i in range(1, n):
-            if points[i].y() > points[bottom].y() or \
-               (points[i].y() == points[bottom].y() and points[i].x() < points[bottom].x()):
-                bottom = i
-                
-        # Tausche den untersten Punkt mit dem ersten Punkt
-        points[0], points[bottom] = points[bottom], points[0]
+        # Erstelle eine Liste aller möglichen Dreiecke
+        triangles = []
+        for i in range(len(points)):
+            for j in range(i + 1, len(points)):
+                for k in range(j + 1, len(points)):
+                    p1, p2, p3 = points[i], points[j], points[k]
+                    
+                    # Prüfe, ob der Punkt im Dreieck liegt
+                    if self.point_in_triangle(point, p1, p2, p3):
+                        # Prüfe, ob ein anderer Punkt im Dreieck liegt
+                        has_point_inside = False
+                        for p in points:
+                            if p not in [p1, p2, p3] and self.point_in_triangle(p, p1, p2, p3):
+                                has_point_inside = True
+                                break
+                        
+                        if not has_point_inside:
+                            triangles.append((p1, p2, p3))
         
-        # Sortiere die restlichen Punkte nach Polarwinkel und Abstand
-        p0 = points[0]
-        points[1:] = sorted(points[1:], 
-                          key=lambda p: (math.atan2(p.y() - p0.y(), p.x() - p0.x()),
-                                       (p.x() - p0.x())**2 + (p.y() - p0.y())**2))
+        # Wenn kein Dreieck gefunden wurde, nehme das Dreieck mit dem kleinsten Umkreis
+        if not triangles:
+            return self.find_nearest_triangle(point, points)
         
-        # Initialisiere den Stack mit den ersten drei Punkten
-        stack = [points[0], points[1]]
+        return triangles[0]
+    
+    def point_in_triangle(self, p, p1, p2, p3):
+        """Prüft, ob ein Punkt in einem Dreieck liegt."""
+        def sign(p1, p2, p3):
+            return (p1.x() - p3.x()) * (p2.y() - p3.y()) - (p2.x() - p3.x()) * (p1.y() - p3.y())
         
-        # Verarbeite die restlichen Punkte
-        for i in range(2, n):
-            while len(stack) > 1 and self.orientation(stack[-2], stack[-1], points[i]) != 2:
-                stack.pop()
-            stack.append(points[i])
+        d1 = sign(p, p1, p2)
+        d2 = sign(p, p2, p3)
+        d3 = sign(p, p3, p1)
+        
+        has_neg = (d1 < 0) or (d2 < 0) or (d3 < 0)
+        has_pos = (d1 > 0) or (d2 > 0) or (d3 > 0)
+        
+        return not (has_neg and has_pos)
+    
+    def find_nearest_triangle(self, point, points):
+        """Findet das Dreieck mit dem kleinsten Umkreis."""
+        if len(points) < 3:
+            return None
             
-        return stack
+        min_circumradius = float('inf')
+        best_triangle = None
+        
+        for i in range(len(points)):
+            for j in range(i + 1, len(points)):
+                for k in range(j + 1, len(points)):
+                    p1, p2, p3 = points[i], points[j], points[k]
+                    circumradius = self.calculate_circumradius(p1, p2, p3)
+                    
+                    if circumradius < min_circumradius:
+                        min_circumradius = circumradius
+                        best_triangle = (p1, p2, p3)
+        
+        return best_triangle
+    
+    def calculate_circumradius(self, p1, p2, p3):
+        """Berechnet den Umkreisradius eines Dreiecks."""
+        # Berechne die Seitenlängen
+        a = math.sqrt((p2.x() - p3.x())**2 + (p2.y() - p3.y())**2)
+        b = math.sqrt((p3.x() - p1.x())**2 + (p3.y() - p1.y())**2)
+        c = math.sqrt((p1.x() - p2.x())**2 + (p1.y() - p2.y())**2)
+        
+        # Berechne den Umkreisradius mit der Formel R = abc/(4A)
+        # wobei A die Fläche des Dreiecks ist
+        s = (a + b + c) / 2
+        area = math.sqrt(s * (s - a) * (s - b) * (s - c))
+        if area == 0:
+            return float('inf')
+        return (a * b * c) / (4 * area)
     
     def update_path(self):
         path = QPainterPath()
         positions = self.position_manager.get_all_positions()
         
-        if len(positions) < 2:
+        if not positions:
             self.setPath(path)
             return
             
         # Extrahiere die Ballpositionen
         ball_positions = [pos.ball_pos for pos in positions]
         
-        # Berechne die konvexe Hülle
-        hull = self.graham_scan(ball_positions)
+        # Finde den aktuellen Ball
+        current_ball = None
+        for item in self.scene().items():
+            if hasattr(item, 'is_ball') and item.is_ball:
+                current_ball = item
+                break
         
-        # Zeichne die Linien entlang der konvexen Hülle
-        if len(hull) > 0:
-            path.moveTo(hull[0].x(), hull[0].y())
-            for i in range(1, len(hull)):
-                path.lineTo(hull[i].x(), hull[i].y())
-            # Schließe den Pfad
-            path.lineTo(hull[0].x(), hull[0].y())
+        if current_ball:
+            # Berechne die Position des aktuellen Balls
+            current_pos = current_ball.scenePos() + current_ball.rect().center()
+            
+            # Finde das umgebende Dreieck
+            triangle = self.find_containing_triangle(current_pos, ball_positions)
+            
+            # Zeichne die Linien des Dreiecks
+            if triangle:
+                p1, p2, p3 = triangle
+                path.moveTo(p1.x(), p1.y())
+                path.lineTo(p2.x(), p2.y())
+                path.lineTo(p3.x(), p3.y())
+                path.lineTo(p1.x(), p1.y())
+        
+        # Zeichne die roten Kreise für alle Positionen
+        for pos in ball_positions:
+            circle = QPainterPath()
+            circle.addEllipse(pos, self.circle_radius, self.circle_radius)
+            path.addPath(circle)
         
         self.setPath(path)
 
@@ -111,6 +189,9 @@ class DefensePositionList(QWidget):
         self.coord_label.setPlainText(f"Ball: {meters_x:.1f}m / {meters_y:.1f}m")
         # Positioniere das Label oben links
         self.coord_label.setPos(10, 10)
+        # Aktualisiere die Linien
+        if self.position_lines:
+            self.position_lines.update_path()
     
     def setup_ui(self):
         layout = QVBoxLayout()
