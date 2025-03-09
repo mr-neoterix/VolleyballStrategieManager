@@ -42,7 +42,7 @@ class PlayerItem(DraggableEllipse):
             return
             
         # Erstelle die Aktionssektoren
-        ball_rect = self.ball.rect()
+        ball_rect = self.ball.boundingRect()
         # Manually add the coordinates of scenePos() and half ball dimensions
         ball_scene_pos = self.ball.scenePos()
         ball_center = QPointF(ball_scene_pos.x() + ball_rect.width()/2, ball_scene_pos.y() + ball_rect.height()/2)
@@ -90,6 +90,10 @@ class PlayerItem(DraggableEllipse):
 
     def updateShadow(self, ball_x, ball_y):
         player_center = self.scenePos() + self.rect().center()
+        # Only show block shadow if player is within 1 meter of the net
+        if abs(player_center.y() - self.court_dims.net_y) > self.court_dims.scale:
+            self.shadow.setPath(QPainterPath())  # remove shadow if farther than 1 meter
+            return
         dx = player_center.x() - ball_x
         dy = player_center.y() - ball_y
         d = math.hypot(dx, dy)
@@ -149,7 +153,7 @@ class PlayerItem(DraggableEllipse):
         super().mouseMoveEvent(event)
         
         if self.ball:
-            ball_rect = self.ball.rect()
+            ball_rect = self.ball.boundingRect()
             ball_center = self.ball.scenePos() + QPointF(ball_rect.width()/2, ball_rect.height()/2)
             self.updateShadow(ball_center.x(), ball_center.y())
             # Statt der Zeile unten sollten wir die update_sectors Funktion verwenden
