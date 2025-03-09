@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFormLayout, QLineEdit, QDoubleSpinBox, QDialogButtonBox, QLabel, QWidget
-from PyQt5.QtCore import Qt
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QFormLayout, QLineEdit, QDoubleSpinBox, QDialogButtonBox, QLabel, QWidget, QGraphicsTextItem
+from PyQt6.QtCore import Qt
 
 class PlayerEditorDialog(QDialog):
     def __init__(self, player, parent=None):
@@ -42,7 +42,7 @@ class PlayerEditorDialog(QDialog):
         main_layout.addLayout(form_layout)
         
         # Dialog buttons
-        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+        self.buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel, self)
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
         main_layout.addWidget(self.buttonBox)
@@ -52,6 +52,10 @@ class PlayerEditorDialog(QDialog):
         new_name = self.name_edit.text()
         if hasattr(self.player, "label"):
             self.player.label = new_name
+            # Update any QGraphicsTextItem child to reflect the new label
+            for child in self.player.childItems():
+                if isinstance(child, QGraphicsTextItem):
+                    child.setPlainText(new_name)
         # Update each sector parameters
         for key, edits in self.editors.items():
             sector = self.player.sectors.get(key)
@@ -62,7 +66,7 @@ class PlayerEditorDialog(QDialog):
                 player_center = self.player.scenePos() + self.player.rect().center()
                 ball = self.player.ball
                 if ball:
-                    ball_rect = ball.rect()
+                    ball_rect = ball.boundingRect()  # changed here
                     ball_center = ball.scenePos() + ball_rect.center()
                     sector.updatePosition(player_center.x(), player_center.y(), ball_center.x(), ball_center.y())
         super().accept()

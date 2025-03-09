@@ -162,6 +162,6 @@ class PlayerItem(DraggableEllipse):
     
     def mouseDoubleClickEvent(self, event):
         editor = PlayerEditorDialog(self)
-        editor.exec_()
+        editor.exec()  # changed from exec_()
         # Optionally update displayed label if implemented
         super().mouseDoubleClickEvent(event)
