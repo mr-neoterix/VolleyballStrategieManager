@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QGraphicsPathItem
-from PyQt5.QtGui import QPen, QPainterPath
-from PyQt5.QtCore import Qt, QPointF
+from PyQt6.QtWidgets import QGraphicsPathItem
+from PyQt6.QtGui import QPen, QPainterPath
+from PyQt6.QtCore import Qt, QPointF
 
 class BaseSector(QGraphicsPathItem):
     def __init__(self, center:QPointF=QPointF(), z_index=0):
@@ -8,7 +8,7 @@ class BaseSector(QGraphicsPathItem):
         self.center = center
         self.path = QPainterPath()
         self.setZValue(z_index)
-        self.setPen(QPen(Qt.NoPen))
+        self.setPen(QPen(Qt.PenStyle.NoPen))
         
     def set_center(self, x, y):
         self.center = QPointF(x, y)

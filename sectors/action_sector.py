@@ -1,6 +1,6 @@
 import math
-from PyQt5.QtCore import QPointF
-from PyQt5.QtGui import QBrush, QColor, QPainterPath, QRadialGradient
+from PyQt6.QtCore import QPointF
+from PyQt6.QtGui import QBrush, QColor, QPainterPath, QRadialGradient
 
 # Use absolute imports
 from sectors.base_sector import BaseSector
@@ -72,16 +72,25 @@ class ActionSector(BaseSector):
         # Create a simple radial gradient from player outward
         gradient = QRadialGradient(self.player_pos, radius)
         
-        # Base color near player
-        gradient.setColorAt(0.0, self.params.color)
+        # Base color near player: create new instance using RGBA components
+        base_color = QColor(self.params.color.red(), 
+                            self.params.color.green(), 
+                            self.params.color.blue(), 
+                            self.params.color.alpha())
+        gradient.setColorAt(0.0, base_color)
         
-        # Start fading at 70% of the radius
-        gradient.setColorAt(0.7, self.params.color)
+        # Start fading at 70% of the radius: create new instance
+        fade_color = QColor(self.params.color.red(), 
+                            self.params.color.green(), 
+                            self.params.color.blue(), 
+                            self.params.color.alpha())
+        gradient.setColorAt(0.7, fade_color)
         
-        # Completely transparent at the edge
-        transparent_color = QColor(self.params.color)
-        transparent_color.setAlpha(0)
+        # Completely transparent at the edge:
+        transparent_color = QColor(self.params.color.red(), 
+                                   self.params.color.green(), 
+                                   self.params.color.blue(), 
+                                   0)
         gradient.setColorAt(1.0, transparent_color)
         
-        # Set as brush
         self.setBrush(QBrush(gradient))

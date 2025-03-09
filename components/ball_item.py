@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QPointF, QRectF
+from PyQt6.QtCore import QPointF, QRectF
 
 # Use absolute imports
 from utils import DraggableEllipse, CourtDimensions

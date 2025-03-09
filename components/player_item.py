@@ -1,7 +1,8 @@
 import math
-from PyQt5.QtWidgets import QGraphicsPathItem
-from PyQt5.QtGui import QBrush, QColor, QPen, QPainterPath, QRadialGradient
-from PyQt5.QtCore import QRectF, Qt, QPointF
+from PyQt6.QtWidgets import QGraphicsPathItem
+from PyQt6.QtGui import QBrush, QColor, QPen, QPainterPath, QRadialGradient
+from PyQt6.QtCore import QRectF, Qt, QPointF
+from player_editor import PlayerEditorDialog  # added import
 
 # Use absolute imports instead of relative
 from utils import DraggableEllipse, CourtDimensions
@@ -23,8 +24,9 @@ class PlayerItem(DraggableEllipse):
         # Erstelle den Schlagschatten
         self.shadow = QGraphicsPathItem()
         self.shadow.setZValue(10)  # Higher than default but below player
-        self.shadow.setBrush(QBrush(QColor(0, 255, 0, 128)))
-        self.shadow.setPen(QPen(Qt.NoPen))
+        # Set the shadow brush to gray instead of green
+        self.shadow.setBrush(QBrush(QColor(128, 128, 128, 128)))
+        self.shadow.setPen(QPen(Qt.PenStyle.NoPen))
         
         # Aktionssektoren
         self.sectors = {}
@@ -33,13 +35,17 @@ class PlayerItem(DraggableEllipse):
         if ball:
             self.init_sectors()
             
+        self.label = label  # store label for editing
+            
     def init_sectors(self):
         if not self.ball:
             return
             
         # Erstelle die Aktionssektoren
         ball_rect = self.ball.rect()
-        ball_center = self.ball.scenePos() + QPointF(ball_rect.width()/2, ball_rect.height()/2)
+        # Manually add the coordinates of scenePos() and half ball dimensions
+        ball_scene_pos = self.ball.scenePos()
+        ball_center = QPointF(ball_scene_pos.x() + ball_rect.width()/2, ball_scene_pos.y() + ball_rect.height()/2)
         player_center = self.scenePos() + self.rect().center()
         
         # Primary attack sector
@@ -116,15 +122,15 @@ class PlayerItem(DraggableEllipse):
             path.lineTo(ball_x, ball_y)
             self.shadow.setPath(path)
             
-            # Create gradient for shadow
+            # Create gradient for shadow using gray colors
             gradient = QRadialGradient(QPointF(ball_x, ball_y), arc_radius)
-            gradient.setColorAt(0.0, QColor(0, 255, 0, 0))
+            gradient.setColorAt(0.0, QColor(128, 128, 128, 0))
             fraction = d / arc_radius
             fraction = max(0, min(fraction, 1))
-            gradient.setColorAt(fraction - 0.01, QColor(0, 255, 0, 0))
-            gradient.setColorAt(fraction, QColor(0, 255, 0, 128))
-            gradient.setColorAt(0.9, QColor(0, 255, 0, 128))
-            gradient.setColorAt(1.0, QColor(0, 255, 0, 0))
+            gradient.setColorAt(fraction - 0.01, QColor(128, 128, 128, 0))
+            gradient.setColorAt(fraction, QColor(128, 128, 128, 128))
+            gradient.setColorAt(0.9, QColor(128, 128, 128, 128))
+            gradient.setColorAt(1.0, QColor(128, 128, 128, 0))
             self.shadow.setBrush(QBrush(gradient))
         
         # Immer die Sektoren aktualisieren, unabhängig davon, 
@@ -149,3 +155,9 @@ class PlayerItem(DraggableEllipse):
             # Statt der Zeile unten sollten wir die update_sectors Funktion verwenden
             # self.update_action_sector(ball_center.x(), ball_center.y())  # Diese Zeile ist jetzt veraltet
             self.update_sectors(ball_center.x(), ball_center.y())
+    
+    def mouseDoubleClickEvent(self, event):
+        editor = PlayerEditorDialog(self)
+        editor.exec_()
+        # Optionally update displayed label if implemented
+        super().mouseDoubleClickEvent(event)

@@ -1,8 +1,8 @@
 import math
-from PyQt5.QtCore import QPointF
-from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem
-from PyQt5.QtGui import QBrush, QPen, QColor
-from PyQt5.QtCore import Qt, QRectF
+from PyQt6.QtCore import QPointF
+from PyQt6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsItem
+from PyQt6.QtGui import QBrush, QPen, QColor
+from PyQt6.QtCore import Qt, QRectF
 
 # Constants
 DEFAULT_SCALE = 30  # 30 pixels per meter
@@ -49,16 +49,18 @@ def get_intersection_with_net(player_pos: QPointF, ball_pos: QPointF, net_y: flo
 class DraggableEllipse(QGraphicsEllipseItem):
     def __init__(self, rect, label=""):
         super().__init__(rect)
-        self.setFlags(QGraphicsEllipseItem.ItemIsSelectable | QGraphicsEllipseItem.ItemIsMovable)
+        # Use QGraphicsItem.GraphicsItemFlag for PyQt6
+        self.setFlags(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable | QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
         self.setBrush(QBrush(QColor("blue")))
-        self.setPen(QPen(Qt.black, 2))
+        # Replace Qt.black with QColor("black")
+        self.setPen(QPen(QColor("black"), 2))
         if label:
             text = QGraphicsTextItem(label, self)
             font = text.font()
             original_size = font.pointSize() if font.pointSize() > 0 else 12
             font.setPointSize(original_size // 2)
             text.setFont(font)
-            text.setDefaultTextColor(Qt.white)
+            text.setDefaultTextColor(QColor("white"))
             text.setPos(rect.x() + rect.width()/2 - text.boundingRect().width()/2,
                         rect.y() + rect.height()/2 - text.boundingRect().height()/2)
         self.movement_boundary: QRectF = None
