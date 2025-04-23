@@ -1,4 +1,5 @@
 import sys
+import math
 from PyQt6.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QWidget, QHBoxLayout, QGraphicsPathItem, QGraphicsLineItem
 from PyQt6.QtGui import QBrush, QPen, QColor, QPainterPath
 from PyQt6.QtCore import Qt, QRectF, QPointF
@@ -216,9 +217,11 @@ def main():
             interpolation_offsets.append(triangle_offsets)
     
     def interpolate_player_positions(x, y):
+        nonlocal current_triangle_line  # allow modifying outer current_triangle_line
         """Try to interpolate player positions based on ball position"""
-        nonlocal current_triangle_line  # add nonlocal declaration so we can modify it
-        global players, ball
+        # Zonen ausblenden, wenn Ball bewegt wird
+        for player in players:
+            player.clearZones()
         
         # Only interpolate if we have enough formations
         if len(interpolation_triangles) == 0:
@@ -322,6 +325,23 @@ def main():
     
     # Connect ball position changes to interpolation function
     ball.positionChanged.connect(interpolate_player_positions)
+    
+    # Einrastfunktion: sobald Ball nahe einer gespeicherten Stellung ist
+    def snap_to_formation(x, y):
+        snap_radius = 15  # Pixelradius zum Einrasten (halbiert)
+        # Suche nach nächster gespeicherter Formation
+        for idx, form in enumerate(def_panel.formations):
+            fx, fy = form["ball"]
+            if math.hypot(x - fx, y - fy) <= snap_radius:
+                saved = (fx, fy)
+                offs = [tuple(off) for off in form.get("offsets", [])]
+                zones = form.get("zones", [])
+                # Lade Formation und setze Listenauswahl
+                apply_defensive_formation((saved, offs, zones))
+                def_panel.positions_list.setCurrentRow(idx)
+                def_panel.on_item_clicked(def_panel.positions_list.currentItem())
+                break
+    ball.positionChanged.connect(snap_to_formation)
     
     main_widget.setWindowTitle("Volleyball Angriffssituation")
     main_widget.resize(1600, 1600)
