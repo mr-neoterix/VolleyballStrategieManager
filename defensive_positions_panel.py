@@ -159,3 +159,19 @@ class DefensivePositionsPanel(QWidget):
         zones_list.append(entry)
         # Persistiere Änderungen
         self.save_formations()
+
+    def delete_zone_entry(self, player_index, rect_vals, color_vals):
+        """
+        Entfernt eine gespeicherte Annahmezone aus der aktuellen Formation und speichert.
+        rect_vals: [x,y,width,height], color_vals: [r,g,b,a]
+        """
+        if self.current_index is None:
+            return
+        zones_list = self.formations[self.current_index].get('zones', [])
+        # Finde und entferne die erste passende Zone
+        for zone in list(zones_list):
+            if zone.get('player_index') == player_index and zone.get('rect') == rect_vals and zone.get('color') == color_vals:
+                zones_list.remove(zone)
+                break
+        # Speichere aktualisierte Formationen
+        self.save_formations()

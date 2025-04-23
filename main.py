@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QWidget, QHBoxLayout, QGraphicsPathItem
+from PyQt6.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QWidget, QHBoxLayout, QGraphicsPathItem, QGraphicsLineItem
 from PyQt6.QtGui import QBrush, QPen, QColor, QPainterPath
 from PyQt6.QtCore import Qt, QRectF, QPointF
 
@@ -125,6 +125,20 @@ def main():
     )
     scene.addItem(attack_sector)
     ball.link_sector(attack_sector)
+
+    # Zeichne 3‑Meter‑Linien über Zonen (z=3)
+    attack_line_y = volleyball_field.net_y - 3 * scale
+    attack_line = QGraphicsLineItem(0, attack_line_y, court_dims.width, attack_line_y)
+    pen_attack = QPen(QColor("red"), 2, Qt.PenStyle.DashLine)
+    attack_line.setPen(pen_attack)
+    attack_line.setZValue(50)
+    scene.addItem(attack_line)
+    defense_line_y = volleyball_field.net_y + 3 * scale
+    defense_line = QGraphicsLineItem(0, defense_line_y, court_dims.width, defense_line_y)
+    pen_def = QPen(QColor("red"), 2, Qt.PenStyle.DashLine)
+    defense_line.setPen(pen_def)
+    defense_line.setZValue(50)
+    scene.addItem(defense_line)
 
     # Defense team
     radius = 10

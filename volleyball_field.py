@@ -31,19 +31,7 @@ class VolleyballField(QGraphicsItem):
         net_line = QLineF(-self.overhang, self.net_y, self.court_width + self.overhang, self.net_y)
         painter.drawLine(net_line)
 
-        # Zeichne den Angriffsraum: Gestrichelte Linie 3 m (3 * scale) vom Netz entfernt (auf der Angriffsseite)
-        attack_line_y = self.net_y - 3 * self.scale
-        attack_pen = QPen(QColor("red"), 2, Qt.PenStyle.DashLine)
-        painter.setPen(attack_pen)
-        attack_line = QLineF(0, attack_line_y, self.court_width, attack_line_y)
-        painter.drawLine(attack_line)
-
-        # Zeichne den Verteidigungsraum: Gestrichelte Linie 3 m (3 * scale) vom Netz entfernt im unteren Feld
-        defense_line_y = self.net_y + 3 * self.scale
-        defense_pen = QPen(QColor("red"), 2, Qt.PenStyle.DashLine)
-        painter.setPen(defense_pen)
-        defense_line = QLineF(0, defense_line_y, self.court_width, defense_line_y)
-        painter.drawLine(defense_line)
+        # (Angriffs- und Verteidigungslinien werden in main.py als separate Items gezeichnet)
 
 # Add global player list for VolleyballField
 players = []

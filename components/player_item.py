@@ -7,6 +7,45 @@ from player_editor import PlayerEditorDialog  # added import
 # Use absolute imports instead of relative
 from utils import DraggableEllipse, CourtDimensions
 
+class ZoneItem(QGraphicsRectItem):
+    """
+    Repräsentiert eine Annahmezone mit Rechtsklick-Menü zum Löschen.
+    """
+    def __init__(self, rect, player_item, panel, color):
+        super().__init__(rect)
+        # Erlaube Rechtsklick-Events und Hover
+        self.setAcceptHoverEvents(True)
+        self.setAcceptedMouseButtons(Qt.MouseButton.RightButton)
+        self.player_item = player_item
+        self.panel = panel
+        self.color = color
+        # Zeichne Zone über dem Feld (z=1)
+        self.setZValue(1)
+        # Kein Rahmen, nur Füllung
+        self.setPen(QPen(Qt.PenStyle.NoPen))
+        c = QColor(color)
+        c.setAlpha(color.alpha())
+        self.setBrush(QBrush(c))
+
+    def mousePressEvent(self, event):
+        # Rechtsklick: Lösche Zone direkt
+        if event.button() == Qt.MouseButton.RightButton:
+            # Panel löschen
+            if self.panel and hasattr(self.panel, 'delete_zone_entry'):
+                r = self.rect()
+                c = self.color
+                self.panel.delete_zone_entry(
+                    self.player_item.player_index,
+                    [r.x(), r.y(), r.width(), r.height()],
+                    [c.red(), c.green(), c.blue(), c.alpha()]
+                )
+            # Entferne grafisches Objekt
+            if self.scene():
+                self.scene().removeItem(self)
+            event.accept()
+            return
+        super().mousePressEvent(event)
+
 class PlayerItem(DraggableEllipse):
     def __init__(self, rect, label="", ball=None, court_dims=None, name_label=None, player_index=None, zone_update_callback=None):
         super().__init__(rect, label)
@@ -48,9 +87,9 @@ class PlayerItem(DraggableEllipse):
             
         # Callback für das Speichern der Zone in Panel
         self.player_index = player_index
-        self.zone_save_callback = zone_update_callback  # Funktion(player_index, QRectF, QColor)
+        self.zone_update_callback = zone_update_callback  # Funktion(player_index, QRectF, QColor)
         # Mehrfach-Zonen pro Spieler
-        self.zones_items = []  # gespeicherte QGraphicsRectItem Objekte
+        self.zones_items = []  # gespeicherte ZoneItem-Objekte
         # Annahmezone-Attribute initialisieren
         self.zone_definition_active = False
         self.zone_start = None
@@ -137,20 +176,21 @@ class PlayerItem(DraggableEllipse):
         self.name_text.setPos(x, y)
 
     def mousePressEvent(self, event):
-        # Rechtsklick: Zeige Annahmezone-Option
+        # Rechtsklick: Lösche Zone direkt
         if event.button() == Qt.MouseButton.RightButton:
-            menu = QMenu()
-            define_action = menu.addAction("Annahmezone definieren")
-            # Ermittle globale Bildschirmkoordinaten
-            pos = event.screenPos()
-            # Falls pos ein QPointF ist, konvertiere zu QPoint
-            if hasattr(pos, 'toPoint'):
-                pos = pos.toPoint()
-            selected = menu.exec(pos)
-            if selected == define_action:
-                # Aktiviere Zone-Definition und fange alle Mausklicks ab
-                self.zone_definition_active = True
-                self.grabMouse()
+            # Panel löschen
+            if self.panel and hasattr(self.panel, 'delete_zone_entry'):
+                r = self.rect()
+                c = self.color
+                self.panel.delete_zone_entry(
+                    self.player_index,
+                    [r.x(), r.y(), r.width(), r.height()],
+                    [c.red(), c.green(), c.blue(), c.alpha()]
+                )
+            # Entferne grafisches Objekt
+            if self.scene():
+                self.scene().removeItem(self)
+            event.accept()
             return
         # Linksklick: Starte Zone-Definition, wenn aktiv
         if self.zone_definition_active and event.button() == Qt.MouseButton.LeftButton:
@@ -179,17 +219,22 @@ class PlayerItem(DraggableEllipse):
             # Farbwahl (halbtransparent enforced in main/App)
             color = QColorDialog.getColor(parent=None)
             if color.isValid() and self.zone_rect_item:
-                # Setze Farbe auf das temporäre Rechteck
-                self.zone_rect_item.setBrush(QBrush(color))
-                # Füge Zone zu gespeicherter Liste hinzu
-                self.zones_items.append(self.zone_rect_item)
-                # Callback speichern
-                if callable(self.zone_save_callback) and self.player_index is not None:
-                    self.zone_save_callback(self.player_index, self.zone_rect_item.rect(), color)
-            else:
-                # Abbruch: Rechteck entfernen
+                # ZoneItem anstelle des temporären Rechtecks erstellen
+                rect = self.zone_rect_item.rect()
+                panel = self.zone_update_callback.__self__ if hasattr(self.zone_update_callback, '__self__') else None
+                zone_item = ZoneItem(rect, self, panel, color)
+                self.scene().addItem(zone_item)
+                self.zones_items.append(zone_item)
+                # Panel speichern
+                if panel and hasattr(panel, 'update_zone'):
+                    panel.update_zone(self.player_index, rect, color)
+                # Entferne temporäres Rechteck
+                if self.zone_rect_item.scene():
+                    self.zone_rect_item.scene().removeItem(self.zone_rect_item)
+            elif self.zone_rect_item and self.zone_rect_item.scene():
+                # Abbruch: temporäres Rechteck entfernen
                 self.scene().removeItem(self.zone_rect_item)
-            # Entferne temporäre Referenz, behalte QGraphicsRectItem in zones_items
+            # Referenz löschen
             self.zone_rect_item = None
             return
         super().mouseReleaseEvent(event)
@@ -201,8 +246,8 @@ class PlayerItem(DraggableEllipse):
         zone_item = QGraphicsRectItem(rect)
         # Zone über dem Feld, unter Spielern/anderen Elementen
         zone_item.setZValue(1)
-        # Rand und halbtransparente Füllung
-        zone_item.setPen(QPen(QColor("lightgray"), 1))
+        # Kein Rand bei geladenen Zonen
+        zone_item.setPen(QPen(Qt.PenStyle.NoPen))
         color.setAlpha(color.alpha() if color.alpha() else 200)
         zone_item.setBrush(QBrush(color))
         # Füge zur Szene hinzu
