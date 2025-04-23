@@ -328,7 +328,7 @@ def main():
     
     # Einrastfunktion: sobald Ball nahe einer gespeicherten Stellung ist
     def snap_to_formation(x, y):
-        snap_radius = 15  # Pixelradius zum Einrasten (halbiert)
+        snap_radius = 10  # Pixelradius zum Einrasten (halbiert)
         # Suche nach nächster gespeicherter Formation
         for idx, form in enumerate(def_panel.formations):
             fx, fy = form["ball"]
