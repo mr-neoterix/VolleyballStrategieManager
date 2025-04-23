@@ -1,18 +1,19 @@
 import math
-from PyQt6.QtWidgets import QGraphicsPathItem
+from PyQt6.QtWidgets import QGraphicsPathItem, QGraphicsTextItem, QGraphicsRectItem, QMenu, QColorDialog
 from PyQt6.QtGui import QBrush, QColor, QPen, QPainterPath, QRadialGradient
 from PyQt6.QtCore import QRectF, Qt, QPointF
 from player_editor import PlayerEditorDialog  # added import
 
 # Use absolute imports instead of relative
 from utils import DraggableEllipse, CourtDimensions
-from sectors.action_sector import ActionSector, ActionSectorParams
 
 class PlayerItem(DraggableEllipse):
-    def __init__(self, rect, label="", ball=None, court_dims=None):
+    def __init__(self, rect, label="", ball=None, court_dims=None, name_label=None, player_index=None, zone_update_callback=None):
         super().__init__(rect, label)
         # Set a very high z-value for the player itself
         self.setZValue(1000)  # Ensure player is always on top
+        # Ermögliche Rechtsklick für Kontextmenü und Links-Klick-Bewegung
+        self.setAcceptedMouseButtons(Qt.MouseButton.LeftButton | Qt.MouseButton.RightButton)
         
         self.ball = ball  # Referenz zum Ball
         self.court_dims = court_dims or CourtDimensions()
@@ -28,66 +29,34 @@ class PlayerItem(DraggableEllipse):
         self.shadow.setBrush(QBrush(QColor(128, 128, 128, 128)))
         self.shadow.setPen(QPen(Qt.PenStyle.NoPen))
         
-        # Aktionssektoren
-        self.sectors = {}
-        
-        # Initialisiere Aktionssektoren, wenn Ball vorhanden ist
-        if ball:
-            self.init_sectors()
+        self.label = label  # store position label
+        # Wenn kein eigener Name übergeben wurde, nehme das Positions-Label als Standard
+        effective_name = name_label if name_label else label
+        self.name_label = effective_name
+        # Zusatz: Benutzerspezifisches Namens-Label unter dem Spieler
+        self.name_text = QGraphicsTextItem(self.name_label, self)
+        # Schriftgröße halbieren
+        font = self.name_text.font()
+        # Fett formatieren
+        font.setBold(True)
+        orig_size = font.pointSize() if font.pointSize() > 0 else 12
+        font.setPointSize(orig_size // 2)
+        self.name_text.setFont(font)
+        self.name_text.setDefaultTextColor(QColor("black"))
+        # Positionierung initial durchführen
+        self.updateNameTextPosition()
             
-        self.label = label  # store label for editing
+        # Callback für das Speichern der Zone in Panel
+        self.player_index = player_index
+        self.zone_save_callback = zone_update_callback  # Funktion(player_index, QRectF, QColor)
+        # Mehrfach-Zonen pro Spieler
+        self.zones_items = []  # gespeicherte QGraphicsRectItem Objekte
+        # Annahmezone-Attribute initialisieren
+        self.zone_definition_active = False
+        self.zone_start = None
+        self.zone_rect_item = None
+        # Hinweis: Scene-View übernimmt die Zone-Zeichnung
             
-    def init_sectors(self):
-        if not self.ball:
-            return
-            
-        # Erstelle die Aktionssektoren
-        ball_rect = self.ball.boundingRect()
-        # Manually add the coordinates of scenePos() and half ball dimensions
-        ball_scene_pos = self.ball.scenePos()
-        ball_center = QPointF(ball_scene_pos.x() + ball_rect.width()/2, ball_scene_pos.y() + ball_rect.height()/2)
-        player_center = self.scenePos() + self.rect().center()
-        
-        # Primary attack sector
-        primary_params = ActionSectorParams(
-            max_radius_meters=6,
-            angle_width=30,
-            color=QColor(0, 255, 0, 100)
-        )
-        self.sectors["primary"] = ActionSector(
-            player_center, ball_center,
-            params=primary_params,
-            net_y=self.court_dims.net_y,
-            z_index=5
-        )
-        
-        # Wide action sector
-        wide_params = ActionSectorParams(
-            max_radius_meters=2, 
-            angle_width=240,
-            color=QColor(0, 255, 0, 100)  # Orange color
-        )
-        self.sectors["wide"] = ActionSector(
-            player_center, ball_center,
-            params=wide_params,
-            net_y=self.court_dims.net_y,
-            z_index=4
-        )
-
-        # Backward action sector
-        backward_params = ActionSectorParams(
-            max_radius_meters=1, 
-            angle_width=120,
-            color=QColor(0, 255, 0, 100),  # Purple color
-            backwards=True
-        )
-        self.sectors["backward"] = ActionSector(
-            player_center, ball_center,
-            params=backward_params,
-            net_y=self.court_dims.net_y,
-            z_index=3
-        )
-
     def updateShadow(self, ball_x, ball_y):
         player_center = self.scenePos() + self.rect().center()
         # Only show block shadow if player is within 1 meter of the net
@@ -106,8 +75,6 @@ class PlayerItem(DraggableEllipse):
         # Check if shadow should be shown
         if d + 2*R > 150:
             self.shadow.setPath(QPainterPath())
-            # Auch wenn kein Schlagschatten gezeigt wird,
-            # müssen wir trotzdem die Sektoren aktualisieren
         else:
             # Rest of shadow calculation
             theta = math.atan2(dy, dx)
@@ -136,32 +103,119 @@ class PlayerItem(DraggableEllipse):
             gradient.setColorAt(0.9, QColor(128, 128, 128, 128))
             gradient.setColorAt(1.0, QColor(128, 128, 128, 0))
             self.shadow.setBrush(QBrush(gradient))
-        
-        # Immer die Sektoren aktualisieren, unabhängig davon, 
-        # ob ein Schlagschatten angezeigt wird oder nicht
-        self.update_sectors(ball_x, ball_y)
-    
-    def update_sectors(self, ball_x, ball_y):
-        player_center = self.scenePos() + self.rect().center()
-        
-        for sector in self.sectors.values():
-            sector.updatePosition(player_center.x(), player_center.y(), ball_x, ball_y)
-            if sector.scene():
-                sector.scene().update(sector.boundingRect())
     
     def mouseMoveEvent(self, event):
+        # Während Zone-Definition: aktualisiere Rechteck
+        if getattr(self, 'zone_definition_active', False) and self.zone_rect_item:
+            current = event.scenePos()
+            rect = QRectF(self.zone_start, current).normalized()
+            self.zone_rect_item.setRect(rect)
+            return
+        # Standard-Bewegungslogik
         super().mouseMoveEvent(event)
+        # Zentriere das untere Namens-Label nach Bewegung
+        self.updateNameTextPosition()
         
         if self.ball:
             ball_rect = self.ball.boundingRect()
             ball_center = self.ball.scenePos() + QPointF(ball_rect.width()/2, ball_rect.height()/2)
             self.updateShadow(ball_center.x(), ball_center.y())
-            # Statt der Zeile unten sollten wir die update_sectors Funktion verwenden
-            # self.update_action_sector(ball_center.x(), ball_center.y())  # Diese Zeile ist jetzt veraltet
-            self.update_sectors(ball_center.x(), ball_center.y())
     
     def mouseDoubleClickEvent(self, event):
         editor = PlayerEditorDialog(self)
-        editor.exec()  # changed from exec_()
-        # Optionally update displayed label if implemented
+        editor.exec()
         super().mouseDoubleClickEvent(event)
+
+    def updateNameTextPosition(self):
+        """
+        Zentriert das untere Namens-Label unter dem Spieler.
+        """
+        text_rect = self.name_text.boundingRect()
+        rect = self.rect()
+        x = rect.x() + rect.width() / 2 - text_rect.width() / 2
+        y = rect.y() + rect.height() + 2
+        self.name_text.setPos(x, y)
+
+    def mousePressEvent(self, event):
+        # Rechtsklick: Zeige Annahmezone-Option
+        if event.button() == Qt.MouseButton.RightButton:
+            menu = QMenu()
+            define_action = menu.addAction("Annahmezone definieren")
+            # Ermittle globale Bildschirmkoordinaten
+            pos = event.screenPos()
+            # Falls pos ein QPointF ist, konvertiere zu QPoint
+            if hasattr(pos, 'toPoint'):
+                pos = pos.toPoint()
+            selected = menu.exec(pos)
+            if selected == define_action:
+                # Aktiviere Zone-Definition und fange alle Mausklicks ab
+                self.zone_definition_active = True
+                self.grabMouse()
+            return
+        # Linksklick: Starte Zone-Definition, wenn aktiv
+        if self.zone_definition_active and event.button() == Qt.MouseButton.LeftButton:
+            self.zone_start = event.scenePos()
+            # Erstelle temporäres Rechteck
+            self.zone_rect_item = QGraphicsRectItem()
+            # Zeichne Zone über dem Feld, aber unter allen anderen Elementen (z=1)
+            self.zone_rect_item.setZValue(1)
+            self.zone_rect_item.setPen(QPen(QColor("lightgray"), 1))
+            self.zone_rect_item.setBrush(QBrush(QColor(0, 0, 0, 0)))
+            # Temporäres Rechteck Events deaktivieren
+            self.zone_rect_item.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+            self.zone_rect_item.setAcceptHoverEvents(False)
+            self.scene().addItem(self.zone_rect_item)
+            event.accept()
+            return
+        # Andernfalls Standard-Verhalten (Bewegung etc.)
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        # Abschluss der Zone-Definition
+        if self.zone_definition_active and event.button() == Qt.MouseButton.LeftButton:
+            # Beende Zone-Definition
+            self.zone_definition_active = False
+            self.ungrabMouse()
+            # Farbwahl (halbtransparent enforced in main/App)
+            color = QColorDialog.getColor(parent=None)
+            if color.isValid() and self.zone_rect_item:
+                # Setze Farbe auf das temporäre Rechteck
+                self.zone_rect_item.setBrush(QBrush(color))
+                # Füge Zone zu gespeicherter Liste hinzu
+                self.zones_items.append(self.zone_rect_item)
+                # Callback speichern
+                if callable(self.zone_save_callback) and self.player_index is not None:
+                    self.zone_save_callback(self.player_index, self.zone_rect_item.rect(), color)
+            else:
+                # Abbruch: Rechteck entfernen
+                self.scene().removeItem(self.zone_rect_item)
+            # Entferne temporäre Referenz, behalte QGraphicsRectItem in zones_items
+            self.zone_rect_item = None
+            return
+        super().mouseReleaseEvent(event)
+
+    def addZone(self, rect: QRectF, color: QColor):
+        """
+        Fügt eine gespeicherte Annahmezone hinzu und zeigt sie an.
+        """
+        zone_item = QGraphicsRectItem(rect)
+        # Zone über dem Feld, unter Spielern/anderen Elementen
+        zone_item.setZValue(1)
+        # Rand und halbtransparente Füllung
+        zone_item.setPen(QPen(QColor("lightgray"), 1))
+        color.setAlpha(color.alpha() if color.alpha() else 200)
+        zone_item.setBrush(QBrush(color))
+        # Füge zur Szene hinzu
+        if self.scene():
+            self.scene().addItem(zone_item)
+        # Merke
+        self.zones_items.append(zone_item)
+
+    def clearZones(self):
+        """
+        Entfernt alle Annahmezonen vom Spieler.
+        """
+        for zi in self.zones_items:
+            if zi.scene():
+                zi.scene().removeItem(zi)
+        self.zones_items.clear()

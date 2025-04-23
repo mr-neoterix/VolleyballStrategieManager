@@ -1,6 +1,6 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QWidget, QHBoxLayout, QGraphicsPathItem  # added QGraphicsPathItem
-from PyQt6.QtGui import QBrush, QPen, QColor, QPainterPath  # Add import for drawing paths
+from PyQt6.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QWidget, QHBoxLayout, QGraphicsPathItem
+from PyQt6.QtGui import QBrush, QPen, QColor, QPainterPath
 from PyQt6.QtCore import Qt, QRectF, QPointF
 
 # Use absolute imports
@@ -10,6 +10,7 @@ from sectors.attack_sector import AttackSector
 from volleyball_field import VolleyballField, players
 from utils_common import CourtDimensions
 from defensive_positions_panel import DefensivePositionsPanel
+from team_panel import TeamPanel  # Panel für Team-Speicherung/Ladung
 
 # Add import for the formation marker
 from components.formation_marker_item import FormationMarkerItem
@@ -33,31 +34,58 @@ def getFormation():
         offset = QPointF(player.scenePos().x() - ball_center.x(),
                          player.scenePos().y() - ball_center.y())
         offsets.append(offset)
-    # Return a tuple: (ball_center as (x,y), list of offsets as (x,y) tuples)
+    # Erfasse Annahmezonen für jeden Spieler
+    zones = []
+    for i, player in enumerate(players):
+        # Prüfe ob Zone definiert ist
+        if hasattr(player, 'zone_rect') and player.zone_rect is not None and player.zone_color is not None:
+            r = player.zone_rect
+            c = player.zone_color
+            zones.append({
+                'player_index': i,
+                'rect': [r.x(), r.y(), r.width(), r.height()],
+                'color': [c.red(), c.green(), c.blue(), c.alpha()]
+            })
+    # Return a tuple: (ball_center as (x,y), list of offsets as (x,y) tuples, list of zones)
     ball_center_tuple = (ball_center.x(), ball_center.y())
     offsets_tuples = [(off.x(), off.y()) for off in offsets]
-    return (ball_center_tuple, offsets_tuples)
+    return (ball_center_tuple, offsets_tuples, zones)
 
 def apply_defensive_formation(formation):
     global ball, players
-    # formation is a tuple: (ball_center_tuple, list_of_offsets)
-    saved_ball_center = formation[0]
-    offsets = formation[1]
+    # formation can be a tuple: (ball_center_tuple, offsets_list) or (ball_center_tuple, offsets_list, zones_list)
+    if len(formation) == 3:
+        saved_ball_center, offsets, zones = formation
+    else:
+        saved_ball_center, offsets = formation
+        zones = []
     print("Anwenden defensive Stellung:", formation)
     ball_radius = ball.boundingRect().width() / 2  # changed from ball.rect().width() / 2
     # Reposition ball so its center is at saved_ball_center
     ball.setPos(saved_ball_center[0] - ball_radius, saved_ball_center[1] - ball_radius)
     ball.update_sector_position()
     
-    # For each player, update position using corresponding offset:
+    # For each player, update position and clear existing zones
     ball_center = QPointF(saved_ball_center[0], saved_ball_center[1])
     for i, player in enumerate(players):
+        # Lösche alte Zonen
+        if hasattr(player, 'clearZones'):
+            player.clearZones()
         if i < len(offsets):
             offset = offsets[i]
             new_position = QPointF(ball_center.x() + offset[0], ball_center.y() + offset[1])
             player.setPos(new_position)
-            # Update player sectors/shadows using new ball center
+            # Update player sectors/shadows
             player.updateShadow(ball_center.x(), ball_center.y())
+    # Nach der Aktualisierung: zeichne alle Annahmezonen
+    for zone in zones:
+        idx = zone.get('player_index')
+        rect_vals = zone.get('rect', [])
+        color_vals = zone.get('color', [])
+        if idx is not None and idx < len(players) and len(rect_vals) == 4 and len(color_vals) == 4:
+            r = QRectF(rect_vals[0], rect_vals[1], rect_vals[2], rect_vals[3])
+            c = QColor(color_vals[0], color_vals[1], color_vals[2], color_vals[3])
+            players[idx].addZone(r, c)
 
 def main():
     app = QApplication(sys.argv)
@@ -110,26 +138,18 @@ def main():
         (6.5 * scale - radius, 16 * scale - radius),
     ]
     
-    # Create players and add their components in the right order
+    # Create players and add ihren Positionsnamen
+    # Position-Namen für Spieler D1..D6: D1=MB, D2=OH, D3=S, D4=OH, D5=L, D6=Oppo
+    position_names = ["MB", "OH", "S", "OH", "L", "Oppo"]
     for i, (x, y) in enumerate(defense_positions):
-        # New: Create player with rect originating at (0,0)
-        player = PlayerItem(QRectF(0, 0, diameter, diameter), f"D{i+1}", ball, court_dims)
+        # Spieler mit Position-Label
+        label = position_names[i] if i < len(position_names) else ""
+        player = PlayerItem(QRectF(0, 0, diameter, diameter), label, ball, court_dims)
         # Set the actual position
         player.setPos(x, y)
         player.setBrush(QBrush(QColor("green")))
         
-        # Initialize sectors
-        player.init_sectors()
-
-        # Add all sectors first (in reverse z-order)
-        if "backward" in player.sectors:
-            scene.addItem(player.sectors["backward"])
-        if "wide" in player.sectors:
-            scene.addItem(player.sectors["wide"])
-        if "primary" in player.sectors:
-            scene.addItem(player.sectors["primary"])
-        
-        # Add shadow
+        # (ActionSektoren entfernt) nur Schlagschatten und Spieler hinzufügen
         scene.addItem(player.shadow)
         
         # Add player last (highest z-index)
@@ -258,6 +278,30 @@ def main():
     def_panel.formationSelected.connect(apply_defensive_formation)
     def_panel.formationsChanged.connect(update_formation_markers)
     main_layout.addWidget(def_panel)
+    
+    # Zonen-Callback für alle Spieler setzen
+    for idx, player in enumerate(players):
+        player.player_index = idx
+        player.zone_update_callback = def_panel.update_zone
+    
+    # TeamPanel rechts neben DefensivePositionsPanel
+    # Callback zum Auslesen aktueller Spielernamen (unter dem Spieler)
+    def get_player_names():
+        return [player.name_label for player in players]
+
+    # Funktion zur Anwendung eines geladenen Teams
+    def on_team_selected(names):
+        for i, player in enumerate(players):
+            if i < len(names):
+                player.name_label = names[i]
+                player.name_text.setPlainText(names[i])
+                player.updateNameTextPosition()
+
+    team_panel = TeamPanel(get_names_callback=get_player_names)
+    team_panel.teamSelected.connect(on_team_selected)
+    main_layout.addWidget(team_panel)
+    # Erst nach Verbindung des Signals initiales Team laden
+    team_panel.load_teams()
     
     # Initialize markers with currently loaded formations
     update_formation_markers(def_panel.formations)

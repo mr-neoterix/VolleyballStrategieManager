@@ -10,6 +10,8 @@ class DefensivePositionsPanel(QWidget):
     
     def __init__(self, get_formation_callback=None, scale_factor=None, parent=None):
         super().__init__(parent)
+        # Aktuell ausgewählte Formation (Index)
+        self.current_index = None
         self.setFixedWidth(250)  # adjust as needed
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -38,10 +40,13 @@ class DefensivePositionsPanel(QWidget):
 
     def load_formations(self):
         try:
-            with open("formations.json", "r") as f:
+            with open("formations.json", "r", encoding="utf-8") as f:
                 loaded = json.load(f)
                 # loaded is a list of dicts
+                # Stelle sicher, dass jede Formation eine 'zones'-Liste hat
                 self.formations = loaded
+                for form in self.formations:
+                    form.setdefault('zones', [])
                 for form in loaded:
                     ball = form["ball"]
                     ball_meters = (round(ball[0] * self.scale_factor, 2), round(ball[1] * self.scale_factor, 2))
@@ -64,15 +69,18 @@ class DefensivePositionsPanel(QWidget):
         if not ok:
             return
         if self.get_formation_callback:
-            formation = self.get_formation_callback()  # (ball_center, offsets_list)
+            # Callback liefert (ball_center, offsets_list, zones)
+            ball_center, offsets_list, zones = self.get_formation_callback()
         else:
-            formation = ((100, 200), [])  # dummy formation
+            # Fallback ohne Zonen
+            ball_center, offsets_list, zones = ( (100, 200), [], [] )
 
-        # Convert formation to dict {"name": name, "ball": [x,y], "offsets": [[x,y],...]}
+        # Convert formation to dict including zones
         formation_dict = {
             "name": name,
-            "ball": [formation[0][0], formation[0][1]],
-            "offsets": [[off[0], off[1]] for off in formation[1]]
+            "ball": [ball_center[0], ball_center[1]],
+            "offsets": [[off[0], off[1]] for off in offsets_list],
+            "zones": zones
         }
         self.formations.append(formation_dict)
         ball = formation_dict["ball"]
@@ -81,28 +89,30 @@ class DefensivePositionsPanel(QWidget):
         self.save_formations()
         
     def on_item_clicked(self, item):
-        index = self.positions_list.row(item)
-        if 0 <= index < len(self.formations):
-            form = self.formations[index]
-            print("Abgerufene Stellung:", form)
-            # Emit formation as tuple: (ball as tuple, offsets as list of tuples)
-            self.formationSelected.emit((tuple(form["ball"]), [tuple(off) for off in form["offsets"]]))
+        idx = self.positions_list.row(item)
+        if 0 <= idx < len(self.formations):
+            # Merke aktuellen Index für Zonenupdates
+            self.current_index = idx
+            form = self.formations[idx]
+            # Emit formation als Tuple: (Ball, Offsets, Zones)
+            ball = tuple(form["ball"])
+            offsets = [tuple(off) for off in form["offsets"]]
+            zones = form.get('zones', [])
+            self.formationSelected.emit((ball, offsets, zones))
 
     def show_context_menu(self, position):
-        # Get the item at the position
+        # Hole das Item an dieser Position
         item = self.positions_list.itemAt(position)
         if item is None:
             return
-            
-        # Create context menu
+        # Kontextmenü: Umbenennen und Löschen
         context_menu = QMenu(self)
+        rename_action = context_menu.addAction("Umbenennen...")
         delete_action = context_menu.addAction("Weg damit")
-        
-        # Show context menu and get selected action
         action = context_menu.exec(self.positions_list.mapToGlobal(position))
-        
-        # Handle the selected action
-        if action == delete_action:
+        if action == rename_action:
+            self.rename_formation(item)
+        elif action == delete_action:
             self.delete_formation(item)
     
     def delete_formation(self, item):
@@ -115,3 +125,37 @@ class DefensivePositionsPanel(QWidget):
             # Save changes to file
             self.save_formations()
             # This will also emit formationsChanged signal via save_formations
+
+    def rename_formation(self, item):
+        """
+        Ermöglicht Umbenennen eines gespeicherten Formations-Namens per Dialog.
+        """
+        idx = self.positions_list.row(item)
+        old_name = self.formations[idx]['name']
+        new_name, ok = QInputDialog.getText(self, "Umbenennen", f"Geben Sie neuen Namen für '{old_name}' ein:")
+        if not ok or not new_name:
+            return
+        # Aktualisiere Name in Daten und Liste
+        self.formations[idx]['name'] = new_name
+        ball = self.formations[idx]['ball']
+        ball_meters = (round(ball[0] * self.scale_factor, 2), round(ball[1] * self.scale_factor, 2))
+        item.setText(f"Stellung: {new_name} - Ball {ball_meters}")
+        # Speichere Datei und signalisiere Änderung
+        self.save_formations()
+
+    def update_zone(self, player_index, rect, color):
+        """
+        Speichert eine Annahmezone für den gegebenen Spieler in der aktuellen Formation.
+        """
+        if self.current_index is None:
+            return
+        zones_list = self.formations[self.current_index].setdefault('zones', [])
+        # Erstelle Eintrag und füge immer neu hinzu (mehrfach-Zonen)
+        entry = {
+            'player_index': player_index,
+            'rect': [rect.x(), rect.y(), rect.width(), rect.height()],
+            'color': [color.red(), color.green(), color.blue(), color.alpha()]
+        }
+        zones_list.append(entry)
+        # Persistiere Änderungen
+        self.save_formations()
