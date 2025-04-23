@@ -1,6 +1,7 @@
 from PyQt6.QtCore import QPointF, QRectF, pyqtSignal, QObject
 from PyQt6.QtWidgets import QGraphicsObject
 from PyQt6.QtGui import QBrush, QPen, QColor, QPainter
+from PyQt6.QtCore import Qt
 
 # Use absolute imports
 from utils import CourtDimensions
@@ -28,9 +29,18 @@ class BallItem(QGraphicsObject):
         return self._rect
     
     def paint(self, painter: QPainter, option, widget=None):
-        painter.setBrush(self._brush)
-        painter.setPen(self._pen)
-        painter.drawEllipse(self._rect)
+        # Zeichne nur die farbigen Segmente ohne äußere Ränder
+        # Volles Rechteck für die Segmente verwenden
+        # Blaues Segment (lückenlos, 120°)
+        painter.setBrush(QBrush(QColor("#1E90FF")))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawPie(self._rect, 30 * 16, 120 * 16)
+        # Gelbes Segment (lückenlos, 120°)
+        painter.setBrush(QBrush(QColor("#FFD700")))
+        painter.drawPie(self._rect, 150 * 16, 120 * 16)
+        # Oranges Segment (lückenlos, 120°)
+        painter.setBrush(QBrush(QColor("#FFCC66")))
+        painter.drawPie(self._rect, 270 * 16, 120 * 16)
     
     def link_sector(self, sector):
         self.attack_sector = sector

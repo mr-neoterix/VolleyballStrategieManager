@@ -20,5 +20,16 @@
       "Frau Kappel",
       "Frau Neubauer"
     ]
+  },
+  {
+    "name": "Haikyuu",
+    "player_names": [
+      "Tsukishima",
+      "Hinata",
+      "Kageyama",
+      "Daichi",
+      "Nishinoya",
+      "Asahi"
+    ]
   }
 ]

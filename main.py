@@ -107,7 +107,7 @@ def main():
    
     global ball  # Declare ball as global here
     # Ball
-    ball_radius = 8
+    ball_radius = 12  # vergrößerter Ball-Radius
     ball_diameter = 2 * ball_radius
     ball_x = 4.5 * scale
     ball_y = 4.5 * scale
