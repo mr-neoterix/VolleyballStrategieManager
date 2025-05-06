@@ -1,6 +1,6 @@
 import math
 from PyQt6.QtCore import Qt, QPointF
-from PyQt6.QtGui import QBrush, QColor, QPainterPath, QRadialGradient, QConicalGradient, QPixmap, QPainter, QTransform
+from PyQt6.QtGui import QBrush, QColor, QPainterPath, QRadialGradient, QPixmap, QPainter, QTransform
 from .base_sector import BaseSector
 
 class AttackSector(BaseSector):
@@ -64,23 +64,6 @@ class AttackSector(BaseSector):
         radial.setColorAt(1.0, QColor(255, 255, 0, 255)) # Gelb
         painter.setBrush(QBrush(radial))
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRect(0, 0, size, size)
-        
-        # Berechne den Winkel für konischen Gradienten
-        bottom_center = QPointF(self.court_width/2, self.court_height)
-        gradient_angle = (-math.degrees(math.atan2(
-            bottom_center.y() - self.ball_pos.y(), 
-            bottom_center.x() - self.ball_pos.x()
-        ))) % 360
-        
-        # Konischer Gradient
-        painter.setCompositionMode(QPainter.CompositionMode(0))
-        conical = QConicalGradient(QPointF(size/2, size/2), gradient_angle)
-        conical.setColorAt(0.0, QColor(255, 0, 0, 150))
-        conical.setColorAt(0.1, QColor(255, 255, 0, 0))
-        conical.setColorAt(0.9, QColor(255, 255, 0, 0))
-        conical.setColorAt(1.0, QColor(255, 0, 0, 150))
-        painter.setBrush(QBrush(conical))
         painter.drawRect(0, 0, size, size)
         painter.end()
         

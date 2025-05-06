@@ -213,10 +213,11 @@ class PlayerItem(DraggableEllipse):
         self.name_text.setPos(x, y)
 
     def mousePressEvent(self, event):
-        # Klick auf den Spieler durchreichen, wenn Zone darüber liegt
+        # Klick auf den Spieler verarbeiten
         scene_pos = event.scenePos()
         mapped = self.mapFromScene(scene_pos)
-        if self.shape().contains(mapped):
+        # Nur ignorieren, wenn NICHT auf dem Spieler, was der Fehler war
+        if not self.shape().contains(mapped):
             event.ignore()
             return
         # Rechtsklick weiterleiten an contextMenuEvent
