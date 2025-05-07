@@ -24,7 +24,10 @@
     - [3.1.5. Kontextmenüs](#315-kontextmenues) ...................... 9
     - [3.1.6. Angriffssektor](#316-angriffssektor) ...................... 10
   - [3.2. Snap-To-Funktion](#32-snap-to-funktion) ....................... 10
-  - [3.3. Team-Panel](#33-team-panel) ................................... 10
+  - [3.3. Interpolation der Spielerpositionen](#33-interpolation-der-spielerpositionen) ... 11
+    - [3.3.1. Finden des optimalen Dreiecks](#331-finden-des-optimalen-dreiecks) ... 11
+    - [3.3.2. Baryzentrische Interpolation](#332-baryzentrische-interpolation) ... 12
+  - [3.4. Team-Panel](#34-team-panel) ................................... 12
 - [4. Installation](#4-installation) ...................................... 12
 - [5. Projektstruktur](#5-projektstruktur) ................................ 13
 - [6. Bedienung](#6-bedienung) ........................................... 14
@@ -126,7 +129,50 @@ Zusätzlich wird ein `QTimer` genutzt, um den Abstand in regelmäßigen Interval
 
 Der Snap-Algorithmus verwendet intern Quadtrees zur effizienten Suche nach den nächsten gespeicherten Positionen, wodurch auch bei hunderten Formationen eine konstante Reaktionszeit gewährleistet ist.
 
-### 3.3. Team-Panel
+### 3.3. Interpolation der Spielerpositionen
+
+Die Interpolation der Spielerpositionen ist ein zentrales Feature des Volleyball Strategie Managers, das es ermöglicht, für jede beliebige Zwischenposition des Balls die optimalen Spielerpositionen zu berechnen. Diese Funktionalität basiert auf der baryzentrische Interpolation innerhalb von Dreiecken und wird in zwei Hauptphasen realisiert.
+
+#### 3.3.1. Finden des optimalen Dreiecks
+
+Um eine sinnvolle Interpolation zu gewährleisten, wird zunächst das optimale Dreieck aus vorhandenen Formationen identifiziert:
+
+1. Alle gespeicherten Formationen werden als potentielle Stützpunkte für die Triangulation verwendet, wobei mindestens drei Formationen vorhanden sein müssen.
+2. Die Ballpositionen aller gespeicherten Formationen bilden mögliche Eckpunkte der Interpolationsdreiecke.
+3. Mit der Funktion `combinations` aus dem `itertools`-Modul werden alle möglichen Dreieckskombinationen aus den Ballpositionen erzeugt.
+4. Bei Bewegung des Balls wird getestet, ob sich die aktuelle Ballposition innerhalb eines der Dreiecke befindet, wofür die `point_in_triangle`-Funktion verwendet wird.
+5. Unter allen Dreiecken, die den aktuellen Ballpunkt enthalten, wird das Dreieck mit der kleinsten Fläche ausgewählt, berechnet durch die Shoelace-Formel:
+   ```python
+   area = abs(a[0]*(b[1]-c[1]) + b[0]*(c[1]-a[1]) + c[0]*(a[1]-b[1])) / 2
+   ```
+6. Das ausgewählte Dreieck wird temporär als gelbe Linie visualisiert, um die aktuelle Interpolationsbasis anzuzeigen.
+
+Die Verwendung des kleinsten Dreiecks stellt sicher, dass die Interpolation auf den drei am nächsten liegenden Formationen basiert, was zu einer präziseren Approximation der Spielerpositionen führt und abrupte Positionswechsel minimiert.
+
+#### 3.3.2. Baryzentrische Interpolation
+
+Nachdem das optimale Dreieck bestimmt wurde, erfolgt die eigentliche Interpolation der Spielerpositionen:
+
+1. Für die aktuelle Ballposition werden baryzentrische Koordinaten (α, β, γ) bezüglich des ausgewählten Dreiecks mit der Funktion `get_barycentric_coordinates` berechnet:
+   ```python
+   denominator = ((b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1]))
+   alpha = ((b[1] - c[1]) * (p[0] - c[0]) + (c[0] - b[0]) * (p[1] - c[1])) / denominator
+   beta = ((c[1] - a[1]) * (p[0] - c[0]) + (a[0] - c[0]) * (p[1] - c[1])) / denominator
+   gamma = 1.0 - alpha - beta
+   ```
+2. Diese Koordinaten repräsentieren die relativen Gewichte der drei Eckpunkte, wobei α + β + γ = 1 gilt.
+3. Für jeden Spieler werden die Offsets (Spieler-Positionen relativ zum Ball) aus den drei Eckpunkt-Formationen extrahiert.
+4. Die neue Position jedes Spielers wird als gewichtete Summe dieser Offsets berechnet:
+   ```python
+   interp_x = weights[0] * off_a[0] + weights[1] * off_b[0] + weights[2] * off_c[0]
+   interp_y = weights[0] * off_a[1] + weights[1] * off_b[1] + weights[2] * off_c[1]
+   ```
+5. Diese interpolierten Offsets werden auf die aktuelle Ballposition angewendet, um die finalen Spielerpositionen zu bestimmen.
+6. Abschließend werden alle Spieler an ihre neuen Positionen gesetzt und ihre Schattenwürfe aktualisiert.
+
+Durch diese baryzentrische Interpolationstechnik wird ein nahtloser Übergang zwischen verschiedenen Formationen erreicht. Da die Interpolation in Echtzeit erfolgt, können Trainer unmittelbar sehen, wie sich die Spielerpositionen verändern sollten, wenn der Ball zwischen bekannten Formationspunkten bewegt wird, was ein intuitives Verständnis der Raumaufteilung im Volleyball fördert.
+
+### 3.4. Team-Panel
 
 Das Team-Panel ist als `QListView` implementiert und dient der Verwaltung benannter Teams. Die Teamdaten werden in der Datei `teams.json` verwaltet, deren Struktur wie folgt aufgebaut ist:
 
