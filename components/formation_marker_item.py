@@ -5,7 +5,7 @@ from PyQt6.QtCore import Qt, QRectF
 class FormationMarkerItem(QGraphicsEllipseItem):
     """Ein kleiner kreisförmiger Marker, der gespeicherte Ballpositionen auf dem Spielfeld anzeigt."""
     
-    def __init__(self, ball_pos, formation_index, radius=3):  # Kleinerer Radius (war 5)
+    def __init__(self, ball_pos, formation_index, radius=3):  
         """
         Erstellt einen Marker an der Ballposition.
         
@@ -14,19 +14,19 @@ class FormationMarkerItem(QGraphicsEllipseItem):
             formation_index: Index der Formation in der Liste
             radius: Radius des Markers in Pixel
         """
-        diameter = radius * 2
-        super().__init__(-radius, -radius, diameter, diameter)
+        diameter = radius * 2   #durchmesser des Markers
+        super().__init__(-radius, -radius, diameter, diameter) #erstellt einen kreis mit dem durchmesser 
         
-        self.formation_index = formation_index
-        self.setPos(ball_pos[0], ball_pos[1])
+        self.formation_index = formation_index 
+        self.setPos(ball_pos[0], ball_pos[1]) #setzt die position des Markers auf die ballposition
         
-        # Setzt das Aussehen - transparente Füllung, nur roter Rand
+      
         self.setBrush(QBrush(Qt.BrushStyle.NoBrush))  # Erstellt einen QBrush ohne Füllung
         self.setPen(QPen(QColor("red"), 1))          # Roter Rand
         
         # Verwendet einen niedrigeren Z-Wert als der Ball, aber höher als das Spielfeld
         self.setZValue(100)
         
-        # Macht den Marker nicht interaktiv
+        # Macht den Marker nicht interaktiv, man kann nichts mit ihm machen 
         self.setFlag(QGraphicsEllipseItem.GraphicsItemFlag.ItemIsSelectable, False)
         self.setFlag(QGraphicsEllipseItem.GraphicsItemFlag.ItemIsMovable, False)
