@@ -4,8 +4,8 @@ from PyQt6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsIt
 from PyQt6.QtGui import QBrush, QPen, QColor
 from PyQt6.QtCore import Qt, QRectF
 
-# Constants
-DEFAULT_SCALE = 30  # 30 pixels per meter
+# Konstanten
+DEFAULT_SCALE = 30  # 30 Pixel pro Meter
 
 class CourtDimensions:
     def __init__(self, scale=DEFAULT_SCALE):
@@ -17,42 +17,42 @@ class CourtDimensions:
         self.defense_line_y = self.net_y + 3 * scale
 
 def calculate_distance(p1: QPointF, p2: QPointF) -> float:
-    """Calculate distance between two points"""
+    """Berechnet den Abstand zwischen zwei Punkten"""
     dx = p2.x() - p1.x()
     dy = p2.y() - p1.y()
     return math.sqrt(dx*dx + dy*dy)
 
 def calculate_angle(from_point: QPointF, to_point: QPointF) -> float:
-    """Calculate angle in degrees from one point to another"""
+    """Berechnet den Winkel in Grad von einem Punkt zu einem anderen"""
     dx = to_point.x() - from_point.x()
     dy = to_point.y() - from_point.y()
     return (-math.degrees(math.atan2(dy, dx))) % 360
 
 def get_intersection_with_net(player_pos: QPointF, ball_pos: QPointF, net_y: float) -> QPointF:
-    """Calculate intersection of player-ball line with the net"""
+    """Berechnet den Schnittpunkt der Linie zwischen Spieler und Ball mit dem Netz"""
     dx = ball_pos.x() - player_pos.x()
     dy = ball_pos.y() - player_pos.y()
     
-    # Check if both points are on the same side of the net
+    # Prüft, ob beide Punkte auf der gleichen Seite des Netzes sind
     if (player_pos.y() < net_y and ball_pos.y() < net_y) or \
        (player_pos.y() > net_y and ball_pos.y() > net_y):
         return None
     
-    # Handle horizontal line case
+    # Behandelt den Fall einer horizontalen Linie
     if dy == 0:
         return QPointF(player_pos.x(), net_y)
     
-    # Calculate intersection using line equation
+    # Berechnet den Schnittpunkt mit der Geradengleichung
     intersection_x = player_pos.x() + (net_y - player_pos.y()) * dx / dy
     return QPointF(intersection_x, net_y)
 
 class DraggableEllipse(QGraphicsEllipseItem):
     def __init__(self, rect, label=""):
         super().__init__(rect)
-        # Use QGraphicsItem.GraphicsItemFlag for PyQt6
+        # Setzt Flags für bewegbare Grafikelemente in PyQt6
         self.setFlags(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable | QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
         self.setBrush(QBrush(QColor("blue")))
-        # Replace Qt.black with QColor("black")
+        # Verwendet QColor("black") statt Qt.black
         self.setPen(QPen(QColor("black"), 2))
         if label:
             text = QGraphicsTextItem(label, self)

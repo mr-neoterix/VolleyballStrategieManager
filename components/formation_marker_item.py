@@ -3,16 +3,16 @@ from PyQt6.QtGui import QBrush, QPen, QColor
 from PyQt6.QtCore import Qt, QRectF
 
 class FormationMarkerItem(QGraphicsEllipseItem):
-    """A small circular marker to indicate saved ball positions on the court."""
+    """Ein kleiner kreisförmiger Marker, der gespeicherte Ballpositionen auf dem Spielfeld anzeigt."""
     
-    def __init__(self, ball_pos, formation_index, radius=3):  # Smaller radius (was 5)
+    def __init__(self, ball_pos, formation_index, radius=3):  # Kleinerer Radius (war 5)
         """
-        Create a marker at the ball position.
+        Erstellt einen Marker an der Ballposition.
         
-        Args:
-            ball_pos: Tuple (x, y) with ball coordinates
-            formation_index: Index of the formation in the list
-            radius: Radius of the marker in pixels
+        Parameter:
+            ball_pos: Tupel (x, y) mit den Ballkoordinaten
+            formation_index: Index der Formation in der Liste
+            radius: Radius des Markers in Pixel
         """
         diameter = radius * 2
         super().__init__(-radius, -radius, diameter, diameter)
@@ -20,13 +20,13 @@ class FormationMarkerItem(QGraphicsEllipseItem):
         self.formation_index = formation_index
         self.setPos(ball_pos[0], ball_pos[1])
         
-        # Set appearance - transparent fill, just red border
-        self.setBrush(QBrush(Qt.BrushStyle.NoBrush))  # Create a QBrush with NoBrush style
-        self.setPen(QPen(QColor("red"), 1))          # Red border
+        # Setzt das Aussehen - transparente Füllung, nur roter Rand
+        self.setBrush(QBrush(Qt.BrushStyle.NoBrush))  # Erstellt einen QBrush ohne Füllung
+        self.setPen(QPen(QColor("red"), 1))          # Roter Rand
         
-        # Use a lower z-value than the ball but higher than the court
+        # Verwendet einen niedrigeren Z-Wert als der Ball, aber höher als das Spielfeld
         self.setZValue(100)
         
-        # Make it non-interactive
+        # Macht den Marker nicht interaktiv
         self.setFlag(QGraphicsEllipseItem.GraphicsItemFlag.ItemIsSelectable, False)
         self.setFlag(QGraphicsEllipseItem.GraphicsItemFlag.ItemIsMovable, False)

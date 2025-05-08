@@ -14,9 +14,9 @@ class BaseSector(QGraphicsPathItem):
         self.center = QPointF(x, y)
         
     def update_path(self):
-        """Override in subclasses to update the path"""
+        """In Unterklassen überschreiben, um den Pfad zu aktualisieren"""
         pass
         
     def set_brush(self, brush):
-        """Set the brush for this sector"""
+        """Legt den Pinsel (Füllstil) für diesen Sektor fest"""
         self.setBrush(brush)

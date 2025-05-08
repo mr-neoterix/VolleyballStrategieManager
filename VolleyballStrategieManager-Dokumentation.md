@@ -119,7 +119,28 @@ Beim Speichern wird geprüft, ob ein Name bereits vorhanden ist, und bei Konflik
 
 #### 3.1.6. Angriffssektor
 
-Ein Angriffssektor wird durch die Klasse `AttackSector` in `sectors/attack_sector.py` bereitgestellt, welche von `BaseSector` erbt. In der Methode `update_path` wird ein `QPainterPath` erzeugt, der am Ballmittelpunkt startet und einen Bogen zur Netzlinie beschreibt. Der Radius des Bogens passt sich dynamisch an den Abstand des Balles zum unteren Spielfeldrand an. Zur visuellen Ausgestaltung werden zwei Gradienten kombiniert: Ein `QRadialGradient` erzeugt einen Farbverlauf von Rot (im Zentrum) zu Gelb (am Rand) und ein `QConicalGradient` fügt eine konische Farbschicht hinzu, um unterschiedliche Angriffswinkel darzustellen. Beide Gradienten werden auf ein temporäres `QPixmap` aufgetragen und mit einem Alpha-Wert von 0.5 versehen. Abschließend wird der resultierende `QBrush` mithilfe von `QTransform` an die korrekte Szene-Koordinate verschoben, um den sektoralen Bereich nahtlos über dem Spielfeld zu platzieren.
+Der Angriffssektor visualisiert den potenziellen Angriffsbereich vom Ball in Richtung Netz und wird durch die Klasse `AttackSector` in `sectors/attack_sector.py` implementiert. Diese erbt von der Basisklasse `BaseSector` und dient als visuelle Hilfe für Trainer, um Angriffswege und -optionen besser einzuschätzen.
+
+Der Sektor wird bei der Initialisierung mit den Feldparametern (Spielfeldbreite, -höhe, Netzposition) konfiguriert und passt sich dynamisch an die Ballposition an. In der zentralen Methode `update_path` wird ein `QPainterPath` erzeugt, der folgende Eigenschaften besitzt:
+
+1. Der Pfad beginnt am Ballmittelpunkt und erstreckt sich in Richtung Netz
+2. Die Sektorwinkel werden durch die Netzkanten begrenzt und dynamisch berechnet:
+   ```python
+   angle_left = math.degrees(math.atan2(ball_pos.y - left_net.y, left_net.x - ball_pos.x))
+   angle_right = math.degrees(math.atan2(ball_pos.y - right_net.y, right_net.x - ball_pos.x))
+   ```
+3. Der Radius des Sektors wird dynamisch an den Abstand des Balls vom unteren Spielfeldrand angepasst:
+   ```python
+   dynamic_radius = self.net_y * 2 - self.ball_pos.y()
+   ```
+
+Für die visuelle Darstellung verwendet der Angriffssektor einen komplexen Gradienten-Mechanismus:
+
+- Ein radialer Gradient (`QRadialGradient`) erzeugt einen Farbverlauf von Rot im Zentrum nahe dem Ball (höhere Angriffsintensität) zu Gelb am Rand (abnehmende Intensität)
+- Dieser Gradient wird auf ein temporäres `QPixmap` gezeichnet und mit einer 50% Transparenz versehen
+- Abschließend wird der resultierende `QBrush` mit einer Transformation (`QTransform`) an die korrekte Position im Spielfeld verschoben
+
+Durch die Kombination aus dynamischem Pfad und Farbverlauf wird ein intuitiv verständlicher visueller Hinweis auf die Angriffsoptionen gegeben, der sich in Echtzeit mit der Ballbewegung aktualisiert. Dies unterstützt Trainer bei der taktischen Analyse und Spielerentscheidung, indem es sofort ersichtlich macht, welche Bereiche des gegnerischen Felds bei einer bestimmten Ballposition erreicht werden können.
 
 ### 3.2. Snap-To-Funktion
 

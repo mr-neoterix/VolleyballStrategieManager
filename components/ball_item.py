@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QGraphicsObject
 from PyQt6.QtGui import QBrush, QPen, QColor, QPainter
 from PyQt6.QtCore import Qt
 
-# Use absolute imports
+# Verwendung absoluten Imports
 from utils import CourtDimensions
 from volleyball_field import players
 
@@ -19,9 +19,9 @@ class BallItem(QGraphicsObject):
         self.court_dims = court_dimensions or CourtDimensions()
         self.half_court = self.court_dims.height / 2
         self.attack_sector = None
-        # Set movement boundary for the ball (court boundaries)
+        # Setzt den Bewegungsbereich für den Ball (Spielfeldgrenzen)
         self.movement_boundary = QRectF(0, 0, self.court_dims.width, self.half_court)
-        # ...existing code for appearance...
+        # Aussehen des Balls
         self._brush = QBrush(QColor("yellow"))
         self._pen = QPen(QColor("black"), 2)
     
@@ -29,7 +29,7 @@ class BallItem(QGraphicsObject):
         return self._rect
     
     def paint(self, painter: QPainter, option, widget=None):
-        # Zeichne nur die farbigen Segmente ohne äußere Ränder
+        # Zeichnet nur die farbigen Segmente ohne äußere Ränder
         # Volles Rechteck für die Segmente verwenden
         # Blaues Segment (lückenlos, 120°)
         painter.setBrush(QBrush(QColor("#1E90FF")))
@@ -65,7 +65,7 @@ class BallItem(QGraphicsObject):
     def mouseMoveEvent(self, event):
         old_pos = self.pos()
         super().mouseMoveEvent(event)
-        # Apply movement boundary constraints
+        # Wendet Bewegungsbeschränkungen an
         if self.movement_boundary:
             pos = self.pos()
             r = self.boundingRect()
