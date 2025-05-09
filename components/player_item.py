@@ -213,13 +213,14 @@ class PlayerItem(DraggableEllipse):
         self.name_text.setPos(x, y)
 
     def mousePressEvent(self, event):
-        # Klick auf den Spieler verarbeiten
+        # Klick auf den Spieler verarbeiten oder Zone-Definition starten
         scene_pos = event.scenePos()
         mapped = self.mapFromScene(scene_pos)
-        # Nur ignorieren, wenn NICHT auf dem Spieler, was der Fehler war
-        if not self.shape().contains(mapped):
-            event.ignore()
-            return
+        # Wenn keine Zonendefinition aktiv, ignoriere Klicks außerhalb des Spielers
+        if not getattr(self, 'zone_definition_active', False):
+            if not self.shape().contains(mapped):
+                event.ignore()
+                return
         # Rechtsklick weiterleiten an contextMenuEvent
         if event.button() == Qt.MouseButton.RightButton:
             event.ignore()
