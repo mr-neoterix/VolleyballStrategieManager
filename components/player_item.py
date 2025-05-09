@@ -86,32 +86,31 @@ class ZoneItem(QGraphicsRectItem):
 class PlayerItem(DraggableEllipse):
     def __init__(self, rect, label="", ball=None, court_dims=None, name_label=None, player_index=None, zone_update_callback=None):
         super().__init__(rect, label)
-        # Set a very high z-value for the player itself
-        self.setZValue(1000)  # Ensure player is always on top
+        # Setze einen sehr hohen Z-Wert für den Spieler selbst
+        self.setZValue(1000)  
         # Ermögliche Rechtsklick für Kontextmenü und Links-Klick-Bewegung
         self.setAcceptedMouseButtons(Qt.MouseButton.LeftButton | Qt.MouseButton.RightButton)
         
-        self.ball = ball  # Referenz zum Ball
+        self.ball = ball  
         self.court_dims = court_dims or CourtDimensions()
         self.half_court = self.court_dims.height / 2
-        # New: Set movement boundary for the ball (court boundaries)
+        # setzt Bewegungsgrenze für den Spieler (Spielfeldgrenzen)
         boundary = QRectF(-30, self.half_court, self.court_dims.width + 60, self.half_court)
         self.set_movement_boundary(boundary)
 
-        # Erstelle den Schlagschatten
+        # Erstellt den Blockschatten
         self.shadow = QGraphicsPathItem()
-        self.shadow.setZValue(150)  # Ensure shadow is above zones (z=100)
-        # Set the shadow brush to gray instead of green
+        self.shadow.setZValue(150)  # Stellt sicher, dass der Blockschatten über den Zonen liegt (z=100)
+        # Setzt den Blockschatten-Pinsel auf Grau
         self.shadow.setBrush(QBrush(QColor(128, 128, 128, 128)))
         self.shadow.setPen(QPen(Qt.PenStyle.NoPen))
         
-        self.label = label  # store position label
-        # Wenn kein eigener Name übergeben wurde, nehme das Positions-Label als Standard
+        self.label = label  
+        # Wenn kein eigener Name übergeben wurde, nehme das Positions-Label als Standard (MB)
         effective_name = name_label if name_label else label
         self.name_label = effective_name
-        # Zusatz: Benutzerspezifisches Namens-Label unter dem Spieler
+        # Benutzerspezifisches Namens-Label unter dem Spieler
         self.name_text = QGraphicsTextItem(self.name_label, self)
-        # Schriftgröße halbieren
         font = self.name_text.font()
         # Fett formatieren
         font.setBold(True)
@@ -119,25 +118,25 @@ class PlayerItem(DraggableEllipse):
         font.setPointSize(orig_size // 2)
         self.name_text.setFont(font)
         self.name_text.setDefaultTextColor(QColor("black"))
-        # Positionierung initial durchführen
+        # Positionierung durchführen
         self.updateNameTextPosition()
             
-        # Callback für das Speichern der Zone in Panel
+        # legt die Spieler-Index fest 
         self.player_index = player_index
-        self.zone_update_callback = zone_update_callback  # Funktion(player_index, QRectF, QColor)
+        self.zone_update_callback = zone_update_callback  
         # Mehrfach-Zonen pro Spieler
-        self.zones_items = []  # gespeicherte ZoneItem-Objekte
+        self.zones_items = []  
         # Annahmezone-Attribute initialisieren
         self.zone_definition_active = False
         self.zone_start = None
         self.zone_rect_item = None
-        # Hinweis: Scene-View übernimmt die Zone-Zeichnung
+        # Scene-View übernimmt die Zone-Zeichnung
             
     def updateShadow(self, ball_x, ball_y):
         player_center = self.scenePos() + self.rect().center()
-        # Only show block shadow if player is within 1 meter of the net
+        # Zeigt den Blockschatten nur, wenn der Spieler innerhalb von 1 Meter zum Netz ist
         if abs(player_center.y() - self.court_dims.net_y) > self.court_dims.scale:
-            self.shadow.setPath(QPainterPath())  # remove shadow if farther than 1 meter
+            self.shadow.setPath(QPainterPath())  # Entfernt Blockschatten, wenn weiter als 1 Meter entfernt
             return
         dx = player_center.x() - ball_x
         dy = player_center.y() - ball_y
@@ -148,11 +147,11 @@ class PlayerItem(DraggableEllipse):
         # Spieler-Radius
         R = self.rect().width() / 2
         
-        # Check if shadow should be shown
+        # Prüft ob der Blockschatten angezeigt werden soll
         if d + 2*R > 150:
             self.shadow.setPath(QPainterPath())
         else:
-            # Rest of shadow calculation
+            # Rest der Blockschatten-Berechnung
             theta = math.atan2(dy, dx)
             alpha = math.asin(min(R/d, 1))
             left_angle = theta - alpha
@@ -169,7 +168,7 @@ class PlayerItem(DraggableEllipse):
             path.lineTo(ball_x, ball_y)
             self.shadow.setPath(path)
             
-            # Create gradient for shadow using gray colors
+            # Erstellt Farbverlauf für Blockschatten mit grauen Farben
             gradient = QRadialGradient(QPointF(ball_x, ball_y), arc_radius)
             gradient.setColorAt(0.0, QColor(128, 128, 128, 0))
             fraction = d / arc_radius
@@ -181,23 +180,25 @@ class PlayerItem(DraggableEllipse):
             self.shadow.setBrush(QBrush(gradient))
     
     def mouseMoveEvent(self, event):
-        # Während Zone-Definition: aktualisiere Rechteck
+        # rechteck aktualisieren während Zone-Definition 
         if getattr(self, 'zone_definition_active', False) and self.zone_rect_item:
             current = event.scenePos()
             rect = QRectF(self.zone_start, current).normalized()
             self.zone_rect_item.setRect(rect)
             return
-        # Standard-Bewegungslogik
+        # Standard-Bewegung
         super().mouseMoveEvent(event)
         # Zentriere das untere Namens-Label nach Bewegung
         self.updateNameTextPosition()
         
-        if self.ball:
+        if self.ball: 
             ball_rect = self.ball.boundingRect()
+            # berechnet den Mittelpunkt des Balls
             ball_center = self.ball.scenePos() + QPointF(ball_rect.width()/2, ball_rect.height()/2)
             self.updateShadow(ball_center.x(), ball_center.y())
     
     def mouseDoubleClickEvent(self, event):
+        # öffnet den Spieler-Editor
         editor = PlayerEditorDialog(self)
         editor.exec()
         super().mouseDoubleClickEvent(event)
@@ -213,10 +214,10 @@ class PlayerItem(DraggableEllipse):
         self.name_text.setPos(x, y)
 
     def mousePressEvent(self, event):
-        # Klick auf den Spieler verarbeiten oder Zone-Definition starten
+        # funktion ermöglicht die Zone-Definition
         scene_pos = event.scenePos()
         mapped = self.mapFromScene(scene_pos)
-        # Wenn keine Zonendefinition aktiv, ignoriere Klicks außerhalb des Spielers
+        # Wenn keine Zonendefinition aktiv, ignoriere werden klicks außerhalb des Spielers ignoriert
         if not getattr(self, 'zone_definition_active', False):
             if not self.shape().contains(mapped):
                 event.ignore()
@@ -240,12 +241,11 @@ class PlayerItem(DraggableEllipse):
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        # Abschluss der Zone-Definition
+        # wenn man maus links loslässt, wird die Zone-Definition beendet 
         if self.zone_definition_active and event.button() == Qt.MouseButton.LeftButton:
-            # Beende Zone-Definition
             self.zone_definition_active = False
             self.ungrabMouse()
-            # Farbwahl (halbtransparent enforced in main/App)
+            # Farbwahl (halbtransparent)
             color = QColorDialog.getColor(parent=None)
             if color.isValid() and self.zone_rect_item:
                 # ZoneItem anstelle des temporären Rechtecks erstellen
@@ -257,7 +257,7 @@ class PlayerItem(DraggableEllipse):
                 # Panel speichern
                 if panel and hasattr(panel, 'update_zone'):
                     panel.update_zone(self.player_index, rect, color)
-                # Entferne temporäres Rechteck
+                # Entfernen des temporäres Rechteck
                 if self.zone_rect_item.scene():
                     self.zone_rect_item.scene().removeItem(self.zone_rect_item)
             elif self.zone_rect_item and self.zone_rect_item.scene():
@@ -276,6 +276,7 @@ class PlayerItem(DraggableEllipse):
         panel = self.zone_update_callback.__self__ if hasattr(self.zone_update_callback, '__self__') else None
         zone_item = ZoneItem(rect, self, panel, color)
         if self.scene():
+            # fügt die Zone zum Spielfeld hinzu
             self.scene().addItem(zone_item)
         self.zones_items.append(zone_item)
 
@@ -288,7 +289,7 @@ class PlayerItem(DraggableEllipse):
                 zi.scene().removeItem(zi)
         self.zones_items.clear()
 
-    def contextMenuEvent(self, event):
+    def contextMenuEvent(self, event): #erscheint beim rechtsklick auf den Spieler
         menu = QMenu()
         add_zone = menu.addAction("Zone hinzufügen")
         clear_zones = menu.addAction("Zonen löschen")
@@ -296,7 +297,7 @@ class PlayerItem(DraggableEllipse):
         action = menu.exec(event.screenPos())
         if action == add_zone:
             # Starte Zone-Definition
-            self.zone_definition_active = True
+            self.zone_definition_active = True 
             self.grabMouse()
         elif action == clear_zones:
             # Entferne alle Zonen inkl. Panel-Einträge
@@ -309,7 +310,7 @@ class PlayerItem(DraggableEllipse):
                         [r.x(), r.y(), r.width(), r.height()],
                         [c.red(), c.green(), c.blue(), c.alpha()]
                     )
-                if zi.scene():
+                if zi.scene(): #entfernt die Zone aus der Szene 
                     zi.scene().removeItem(zi)
             self.zones_items.clear()
         elif action == edit_player:

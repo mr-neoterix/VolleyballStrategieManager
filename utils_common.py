@@ -5,14 +5,14 @@ from PyQt6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsIt
 from PyQt6.QtGui import QBrush, QPen, QColor
 from PyQt6.QtCore import Qt, QRectF
 
-# Konstanten
+# Konstante
 DEFAULT_SCALE = 30  # 30 Pixel pro Meter
 
-class CourtDimensions:
+class CourtDimensions: #standardmaße für das volleyballfeld
     def __init__(self, scale=DEFAULT_SCALE):
         self.scale = scale
         self.width = 9 * scale
-        self.height = 18 * scale
+        self.height = 18 * scale 
         self.net_y = 9 * scale
         self.attack_line_y = self.net_y - 3 * scale
         self.defense_line_y = self.net_y + 3 * scale
@@ -29,7 +29,7 @@ def calculate_angle(from_point: QPointF, to_point: QPointF) -> float:
     dy = to_point.y() - from_point.y()
     return (-math.degrees(math.atan2(dy, dx))) % 360
 
-def get_intersection_with_net(player_pos: QPointF, ball_pos: QPointF, net_y: float) -> QPointF:
+def get_intersection_with_net(player_pos: QPointF, ball_pos: QPointF, net_y: float) -> QPointF: 
     """Berechnet den Schnittpunkt der Linie zwischen Spieler und Ball mit dem Netz"""
     dx = ball_pos.x() - player_pos.x()
     dy = ball_pos.y() - player_pos.y()
@@ -39,26 +39,25 @@ def get_intersection_with_net(player_pos: QPointF, ball_pos: QPointF, net_y: flo
        (player_pos.y() > net_y and ball_pos.y() > net_y):
         return None
     
-    # Behandelt den Fall einer horizontalen Linie
-    if dy == 0:
-        return QPointF(player_pos.x(), net_y)
+    if dy == 0: #wenn ball und spieler auf netzt liegen 
+        return QPointF(player_pos.x(), net_y) 
     
     # Berechnet den Schnittpunkt mit der Geradengleichung
     intersection_x = player_pos.x() + (net_y - player_pos.y()) * dx / dy
-    return QPointF(intersection_x, net_y)
+    return QPointF(intersection_x, net_y) # wichtig für die spielerposition  
 
 class DraggableEllipse(QGraphicsEllipseItem):
     def __init__(self, rect, label=""):
         super().__init__(rect)
-        # Setzt Flags für bewegbare Grafikelemente in PyQt6
-        self.setFlags(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable | QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
+        # Setzt Flag für bewegbare Grafikelemente in PyQt6
+        self.setFlags(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable | QGraphicsItem.GraphicsItemFlag.ItemIsMovable) #wird eingestellt, dass die Ellipse bewegt werden kann  
         self.setBrush(QBrush(QColor("blue")))
         # Verwendet QColor("black") statt Qt.black
         self.setPen(QPen(QColor("black"), 2))
         if label:
-            text = QGraphicsTextItem(label, self)
+            text = QGraphicsTextItem(label, self)   
             font = text.font()
-            original_size = font.pointSize() if font.pointSize() > 0 else 12
+            original_size = font.pointSize() if font.pointSize() > 0 else 12 #12 ist die Schriftgröße   
             font.setPointSize(original_size // 2)
             text.setFont(font)
             text.setDefaultTextColor(QColor("white"))
@@ -69,7 +68,7 @@ class DraggableEllipse(QGraphicsEllipseItem):
     def set_movement_boundary(self, boundary: QRectF):
         self.movement_boundary = boundary
 
-    def mouseMoveEvent(self, event):
+    def mouseMoveEvent(self, event):    #wird ausgelöst, wenn ellipse bewegt wird  
         super().mouseMoveEvent(event)
         if self.movement_boundary:
             pos = self.pos()

@@ -7,53 +7,52 @@ class TeamPanel(QWidget):
     Panel zur Verwaltung von Teams: Speichern, Laden und Auswählen.
     Persistenz in teams.json.
     """
-    # Signal mit der Liste der Spielernamen eines ausgewählten Teams
-    teamSelected = pyqtSignal(list)
-    # Signal bei Änderungen an der Teams-Liste
+    teamSelected = pyqtSignal(list) 
+    # Signal bei Änderungen an der Teams-Liste, um die Änderungen zu speichern  
     teamsChanged = pyqtSignal(list)
 
-    def __init__(self, get_names_callback=None, parent=None):
+    def __init__(self, get_names_callback=None, parent=None):#get_names_callback ist eine Funktion, die die Namen der Spieler ausliest 
         super().__init__(parent)
         self.get_names_callback = get_names_callback
-        self.teams = []  # Liste von Dicts: {'name': str, 'player_names': [str, ...]}
+        self.teams = []  # Liste von Dicts: {'name': str, 'player_names'
 
-        self.setFixedWidth(250)
+        self.setFixedWidth(250) #breite panel
         layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop) #oben ausrichten 
 
-        self.save_button = QPushButton("Team speichern", self)
+        self.save_button = QPushButton("Team speichern", self) 
         layout.addWidget(self.save_button)
 
-        self.team_list = QListWidget(self)
+        self.team_list = QListWidget(self) 
         self.team_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        layout.addWidget(self.team_list)
+        layout.addWidget(self.team_list) #liste der teams 
 
-        # Events
-        self.save_button.clicked.connect(self.save_current_team)
+        
+        self.save_button.clicked.connect(self.save_current_team) #speichert das aktuelle team  
         self.team_list.itemClicked.connect(self.on_item_clicked)
-        self.team_list.customContextMenuRequested.connect(self.show_context_menu)
+        self.team_list.customContextMenuRequested.connect(self.show_context_menu) #zeigt das Kontextmenü an  
 
-        # Lade vorhandene Teams
-        self.load_teams()
+        # lädt die teams aus teams.json 
+        self.load_teams() 
 
     def load_teams(self):
         """Lädt Teams aus teams.json und wählt das erste Team automatisch aus."""
         try:
-            with open("teams.json", "r", encoding="utf-8") as f:
+            with open("teams.json", "r", encoding="utf-8") as f: #liest die teams aus teams.json  
                 loaded = json.load(f)
                 self.teams = loaded if isinstance(loaded, list) else []
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (FileNotFoundError, json.JSONDecodeError): 
             self.teams = []
 
-        self.team_list.clear()
+        self.team_list.clear() 
         for team in self.teams:
             self.team_list.addItem(team['name'])
 
-        # Signal und Standardauswahl
+    
         self.teamsChanged.emit(self.teams)
         if self.teams:
             self.team_list.setCurrentRow(0)
-            self.on_item_clicked(self.team_list.currentItem())
+            self.on_item_clicked(self.team_list.currentItem()) #wenn ein team ausgewählt wird, wird die on_item_clicked funktion aufgerufen  
 
     def save_teams(self):
         """Speichert die Teams-Liste in teams.json."""
@@ -70,7 +69,7 @@ class TeamPanel(QWidget):
         entry = {'name': name, 'player_names': player_names}
         self.teams.append(entry)
         self.team_list.addItem(name)
-        self.save_teams()
+        self.save_teams()   
 
     def on_item_clicked(self, item):
         """Emit für ausgewähltes Team mit Spielernamen."""
@@ -78,19 +77,19 @@ class TeamPanel(QWidget):
         if 0 <= idx < len(self.teams):
             self.teamSelected.emit(self.teams[idx]['player_names'])
 
-    def show_context_menu(self, pos):
-        item = self.team_list.itemAt(pos)
+    def show_context_menu(self, pos): 
+        item = self.team_list.itemAt(pos) 
         if not item:
             return
         menu = QMenu(self)
-        delete_action = menu.addAction("Löschen")
+        delete_action = menu.addAction("Löschen") 
         action = menu.exec(self.team_list.mapToGlobal(pos))
         if action == delete_action:
             self.delete_team(item)
 
-    def delete_team(self, item):
+    def delete_team(self, item): #löscht ein team  
         idx = self.team_list.row(item)
         if 0 <= idx < len(self.teams):
             del self.teams[idx]
-            self.team_list.takeItem(idx)
+            self.team_list.takeItem(idx) 
             self.save_teams() 

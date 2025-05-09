@@ -3,9 +3,10 @@ from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtGui import QBrush, QColor, QPainterPath, QRadialGradient, QPixmap, QPainter, QTransform
 from .base_sector import BaseSector
 
-class AttackSector(BaseSector):
+class AttackSector(BaseSector): 
     def __init__(self, ball_pos:QPointF, court_width=270, court_height=540, net_y=270, radius=300):
         super().__init__(ball_pos, z_index=2)
+        # initialisiert den Sektor mit der angegebenen Ballposition und einem Z-Index von 2 
         self.ball_pos = ball_pos
         self.court_width = court_width
         self.court_height = court_height
@@ -19,7 +20,7 @@ class AttackSector(BaseSector):
         self.update_path()
         
     def update_path(self):
-        path = QPainterPath()
+        path = QPainterPath() 
         
         # Definiert die Positionen der Netzenden
         left_net = QPointF(0, self.net_y)
@@ -70,7 +71,7 @@ class AttackSector(BaseSector):
         
         # Fügt Transparenz hinzu (50%)
         temp = QPixmap(size, size)
-        temp.fill(QColor(0, 0, 0, 0))  # Transparenter Hintergrund
+        temp.fill(QColor(0, 0, 0, 0))
         painter2 = QPainter(temp)
         painter2.setOpacity(0.5)
         painter2.drawPixmap(0, 0, combined)
