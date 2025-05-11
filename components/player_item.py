@@ -29,7 +29,7 @@ class ZoneItem(QGraphicsRectItem):
         semi_alpha = max(1, color.alpha() // 2)
         c.setAlpha(semi_alpha)
         self.setBrush(QBrush(c))
-
+#
     def mousePressEvent(self, event):
         # Klick auf den Spieler durchreichen, wenn Zone darüber liegt
         scene_pos = event.scenePos()
