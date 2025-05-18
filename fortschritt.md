@@ -1,0 +1,13 @@
+- [x] defensive_positions_panel.py
+- [x] interpolation.py
+- [x] main.py
+- [x] player_editor.py
+- [x] team_panel.py
+- [x] utils.py
+- [x] utils_common.py
+- [ ] volleyball_field.py
+- [ ] components/ball_item.py
+- [ ] components/formation_marker_item.py
+- [ ] components/player_item.py
+- [ ] sectors/attack_sector.py
+- [ ] sectors/base_sector.py
