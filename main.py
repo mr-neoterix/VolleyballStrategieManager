@@ -9,7 +9,7 @@ from components.player_item import PlayerItem  # Importiert die PlayerItem-Klass
 from components.ball_item import BallItem  # Importiert die BallItem-Klasse aus dem components-Modul.
 from sectors.attack_sector import AttackSector  # Importiert die AttackSector-Klasse aus dem sectors-Modul.
 from volleyball_field import VolleyballField, players  # Importiert VolleyballField und die globale Spielerliste.
-from utils_common import CourtDimensions  # Importiert CourtDimensions für Spielfeldabmessungen.
+from utils import CourtDimensions  # Importiert CourtDimensions für Spielfeldabmessungen aus utils.py.
 from defensive_positions_panel import DefensivePositionsPanel  # Importiert das Panel für Defensivpositionen.
 from team_panel import TeamPanel  # Importiert das Panel für Team-Speicherung/Ladung.
 

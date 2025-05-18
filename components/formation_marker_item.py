@@ -14,19 +14,19 @@ class FormationMarkerItem(QGraphicsEllipseItem):
             formation_index: Index der Formation in der Liste
             radius: Radius des Markers in Pixel
         """
-        diameter = radius * 2   #durchmesser des Markers
-        super().__init__(-radius, -radius, diameter, diameter) #erstellt einen kreis mit dem durchmesser 
+        diameter = radius * 2   # Durchmesser des Markers
+        super().__init__(-radius, -radius, diameter, diameter) # Erstellt einen Kreis mit dem Durchmesser
         
         self.formation_index = formation_index 
-        self.setPos(ball_pos[0], ball_pos[1]) #setzt die position des Markers auf die ballposition
+        self.setPos(ball_pos[0], ball_pos[1]) # Setzt die Position des Markers auf die Ballposition
         
       
         self.setBrush(QBrush(Qt.BrushStyle.NoBrush))  # Erstellt einen QBrush ohne Füllung
-        self.setPen(QPen(QColor("red"), 1))          # Roter Rand
+        self.setPen(QPen(QColor("red"), 1))          # Setzt einen roten Rand mit Dicke 1
         
         # Verwendet einen niedrigeren Z-Wert als der Ball, aber höher als das Spielfeld
-        self.setZValue(100)
+        self.setZValue(100) # Setzt den Z-Wert für die Stapelreihenfolge
         
         # Macht den Marker nicht interaktiv, man kann nichts mit ihm machen 
-        self.setFlag(QGraphicsEllipseItem.GraphicsItemFlag.ItemIsSelectable, False)
-        self.setFlag(QGraphicsEllipseItem.GraphicsItemFlag.ItemIsMovable, False)
+        self.setFlag(QGraphicsEllipseItem.GraphicsItemFlag.ItemIsSelectable, False) # Deaktiviert die Auswählbarkeit des Markers
+        self.setFlag(QGraphicsEllipseItem.GraphicsItemFlag.ItemIsMovable, False) # Deaktiviert die Beweglichkeit des Markers
