@@ -25,7 +25,6 @@ def save_json(path, data):
 def index():
     return render_template('index.html')
 
-
 @app.route('/api/formations', methods=['GET', 'POST'])
 def formations():
     """List or append formations."""
@@ -78,6 +77,7 @@ def teams_delete(idx):
         return jsonify({'error': 'invalid index'}), 404
     teams.pop(idx)
     save_json(TEAMS_PATH, teams)
+
     return jsonify({'status': 'ok'})
 
 
