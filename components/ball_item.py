@@ -1,7 +1,7 @@
-from PySide6.QtCore import QPointF, QRectF, Signal, QObject # Importiert notwendige Klassen von PyQt6.QtCore
-from PySide6.QtWidgets import QGraphicsObject # Importiert QGraphicsObject von PyQt6.QtWidgets
-from PySide6.QtGui import QBrush, QPen, QColor, QPainter # Importiert notwendige Klassen von PyQt6.QtGui
-from PySide6.QtCore import Qt # Importiert Qt von PyQt6.QtCore
+from PySide6.QtCore import QPointF, QRectF, Signal, QObject # Importiert notwendige Klassen von PySide6.QtCore
+from PySide6.QtWidgets import QGraphicsObject # Importiert QGraphicsObject von PySide6.QtWidgets
+from PySide6.QtGui import QBrush, QPen, QColor, QPainter # Importiert notwendige Klassen von PySide6.QtGui
+from PySide6.QtCore import Qt # Importiert Qt von PySide6.QtCore
 
 # Verwendung absoluten Imports
 from utils import CourtDimensions # Importiert CourtDimensions von utils

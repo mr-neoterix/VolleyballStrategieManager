@@ -1,7 +1,7 @@
 import math # Importiert das Modul math für mathematische Operationen
-from PySide6.QtWidgets import QGraphicsPathItem, QGraphicsTextItem, QGraphicsRectItem, QMenu, QColorDialog # Importiert notwendige Klassen von PyQt6.QtWidgets
-from PySide6.QtGui import QBrush, QColor, QPen, QPainterPath, QRadialGradient # Importiert notwendige Klassen von PyQt6.QtGui
-from PySide6.QtCore import QRectF, Qt, QPointF # Importiert notwendige Klassen von PyQt6.QtCore
+from PySide6.QtWidgets import QGraphicsPathItem, QGraphicsTextItem, QGraphicsRectItem, QMenu, QColorDialog # Importiert notwendige Klassen von PySide6.QtWidgets
+from PySide6.QtGui import QBrush, QColor, QPen, QPainterPath, QRadialGradient # Importiert notwendige Klassen von PySide6.QtGui
+from PySide6.QtCore import QRectF, Qt, QPointF # Importiert notwendige Klassen von PySide6.QtCore
 from player_editor import PlayerEditorDialog  # Importiert den Dialog zur Spielerbearbeitung
 
 # Use absolute imports instead of relative

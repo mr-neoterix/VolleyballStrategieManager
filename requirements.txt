@@ -1,2 +1,2 @@
 Flask
-PyQt6
+PySide6

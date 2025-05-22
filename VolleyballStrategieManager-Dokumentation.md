@@ -1,7 +1,7 @@
 # Volleyball Strategie Manager – Dokumentation
 
 **Interaktive Desktop-Anwendung zur Visualisierung und Verwaltung von Volleyball-Angriffs- und Abwehrformationen**  
-**Python 3.8+ · PyQt6**
+**Python 3.8+ · PySide6**
 
 ---
 
@@ -14,7 +14,7 @@
   - [1.3. Motivation](#13-motivation) ........................ 4
 - [2. Vorbetrachtung](#2-vorbetrachtung) ................................. 4
   - [2.1. Zeichnen des Volleyballfelds](#21-zeichnen-des-volleyballfelds) ... 4
-  - [2.2. Evaluierung von PyQt6](#22-evaluierung-von-pyqt6) ........................ 5
+  - [2.2. Evaluierung von PySide6](#22-evaluierung-von-pyside6) ........................ 5
 - [3. Ergebnisse](#3-ergebnisse) ........................................... 7
   - [3.1. Grafische Benutzeroberfläche (GUI)](#31-grafische-benutzeroberflaeche-gui) ... 7
     - [3.1.1. Interaktives Spielfeld](#311-interaktives-spielfeld) ........ 7
@@ -39,7 +39,7 @@
 
 ## Kurzreferat
 
-Der **Volleyball Strategie Manager** ist eine interaktive Desktop-Anwendung zur Visualisierung und Verwaltung von Volleyball-Angriffs- und Abwehrformationen. Die Software bietet ein mit PyQt6 gezeichnetes Spielfeld, bewegbare Spieler, konfigurierbare Annahmezonen sowie eine automatische Einraster-Funktion beim Ziehen des Balls. Sie richtet sich an Trainer und Teams, die ihre taktischen Aufstellungen effizient planen und präsentieren möchten.
+Der **Volleyball Strategie Manager** ist eine interaktive Desktop-Anwendung zur Visualisierung und Verwaltung von Volleyball-Angriffs- und Abwehrformationen. Die Software bietet ein mit PySide6 gezeichnetes Spielfeld, bewegbare Spieler, konfigurierbare Annahmezonen sowie eine automatische Einraster-Funktion beim Ziehen des Balls. Sie richtet sich an Trainer und Teams, die ihre taktischen Aufstellungen effizient planen und präsentieren möchten.
 
 ## 1. Einleitung
 
@@ -71,9 +71,9 @@ In der Vorentwicklung wurden verschiedene Ansätze geprüft, um das Volleyballfe
 
 Die Vogelperspektive ermöglicht eine klare zweidimensionale Darstellung, die das Platzieren von Spielern und Zonen vereinfacht. Auf den Einsatz komplexer Pfadobjekte wurde verzichtet, um die Performance hoch und den Implementierungsaufwand gering zu halten. Skalierung und Interaktion erfolgen über die eingebaute `QGraphicsView`-Funktionalität, die flüssige Ansichten bei unterschiedlichen Zoomstufen garantiert.
 
-### 2.2. Evaluierung von PyQt6
+### 2.2. Evaluierung von PySide6
 
-PyQt6 bietet mit seiner `QGraphicsView`-Architektur nicht nur Zeichenfunktionen, sondern auch integriertes Event-Handling und Performance-Optimierungen für große Szenen. Das benötigte Echtzeit-Feedback beim Verschieben von Spielern wurde durch sofortige Neuzeichnungen realisiert, ohne dass merkliche Verzögerungen auftraten. Auch die Kombination aus `QPen` und `QBrush` für unterschiedliche Linienfarben und Flächenschattierungen deckt alle Anforderungen ab.
+PySide6 bietet mit seiner `QGraphicsView`-Architektur nicht nur Zeichenfunktionen, sondern auch integriertes Event-Handling und Performance-Optimierungen für große Szenen. Das benötigte Echtzeit-Feedback beim Verschieben von Spielern wurde durch sofortige Neuzeichnungen realisiert, ohne dass merkliche Verzögerungen auftraten. Auch die Kombination aus `QPen` und `QBrush` für unterschiedliche Linienfarben und Flächenschattierungen deckt alle Anforderungen ab.
 
 Daher wurde die Entscheidung getroffen, die Spielfeld-Rendering-Logik vollständig auf das Qt-Grafikframework zu stützen.
 
@@ -215,7 +215,7 @@ Fehlerhafte Einträge (leerer Teamname, doppelte Teams) werden durch Validierung
 1. Python 3.8+ installieren  
 2. Abhängigkeiten installieren:  
    ```bash
-   pip install PyQt6
+   pip install PySide6
    ```  
 3. Repository klonen und Verzeichnis wechseln:  
    ```bash

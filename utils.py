@@ -1,5 +1,5 @@
 import math  # Importiert das math-Modul für mathematische Operationen.
-from PySide6.QtCore import QPointF  # Importiert QPointF von PyQt6 für die Arbeit mit 2D-Punkten mit Fließkommazahlen.
+from PySide6.QtCore import QPointF  # Importiert QPointF von PySide6 für die Arbeit mit 2D-Punkten mit Fließkommazahlen.
 from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsItem  # Importiert Klassen für grafische Elemente wie Ellipsen und Text.
 from PySide6.QtGui import QBrush, QPen, QColor  # Importiert Klassen für Pinsel, Stifte und Farben.
 from PySide6.QtCore import Qt, QRectF  # Importiert Qt-Kernfunktionalitäten und QRectF für Rechtecke mit Fließkommazahlen.
@@ -49,7 +49,7 @@ def get_intersection_with_net(player_pos: QPointF, ball_pos: QPointF, net_y: flo
 class DraggableEllipse(QGraphicsEllipseItem):  # Definiert eine Klasse für eine ziehbare Ellipse, die von QGraphicsEllipseItem erbt.
     def __init__(self, rect, label=""):  # Konstruktor der Klasse, nimmt ein Rechteck (QRectF) und ein optionales Label entgegen.
         super().__init__(rect)  # Ruft den Konstruktor der Basisklasse auf.
-        # Setzt Flags für bewegbare Grafikelemente in PyQt6
+        # Setzt Flags für bewegbare Grafikelemente in PySide6
         self.setFlags(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable | QGraphicsItem.GraphicsItemFlag.ItemIsMovable)  # Macht das Element auswähl- und bewegbar.
         self.setBrush(QBrush(QColor("blue")))  # Setzt die Füllfarbe der Ellipse auf Blau.
         # Verwendet QColor("black") statt Qt.black

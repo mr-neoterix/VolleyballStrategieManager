@@ -1,6 +1,6 @@
 import json  # Importiert das json-Modul für die Arbeit mit JSON-Daten.
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QInputDialog, QMenu  # Importiert notwendige Widgets von PyQt6 für die GUI.
-from PySide6.QtCore import Qt, Signal  # Importiert Qt-Kernfunktionalitäten und das Signal-System von PyQt6.
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QInputDialog, QMenu  # Importiert notwendige Widgets von PySide6 für die GUI.
+from PySide6.QtCore import Qt, Signal  # Importiert Qt-Kernfunktionalitäten und das Signal-System von PySide6.
 
 class DefensivePositionsPanel(QWidget):  # Definiert eine Klasse für das Panel der Defensivpositionen, die von QWidget erbt.
     # Sendet die ausgewählte Formation: ein Tupel (Ballposition, Liste von Spieler-Offsets)
