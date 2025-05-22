@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QFormLayout, QLineEdit, QDoubleSpinBox, QDialogButtonBox, QLabel, QWidget, QGraphicsTextItem  # Importiert notwendige Widgets von PyQt6 für Dialoge und Layouts.
-from PyQt6.QtCore import Qt  # Importiert Qt-Kernfunktionalitäten.
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QFormLayout, QLineEdit, QDoubleSpinBox, QDialogButtonBox, QLabel, QWidget, QGraphicsTextItem  # Importiert notwendige Widgets von PyQt6 für Dialoge und Layouts.
+from PySide6.QtCore import Qt  # Importiert Qt-Kernfunktionalitäten.
 
 class PlayerEditorDialog(QDialog): # Dialog für die Spielerbearbeitung.
     def __init__(self, player, parent=None):  # Konstruktor des Dialogs, nimmt ein Spielerobjekt und ein optionales Eltern-Widget entgegen.

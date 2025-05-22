@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QGraphicsEllipseItem
-from PyQt6.QtGui import QBrush, QPen, QColor
-from PyQt6.QtCore import Qt, QRectF
+from PySide6.QtWidgets import QGraphicsEllipseItem
+from PySide6.QtGui import QBrush, QPen, QColor
+from PySide6.QtCore import Qt, QRectF
 
 class FormationMarkerItem(QGraphicsEllipseItem):
     """Ein kleiner kreisförmiger Marker, der gespeicherte Ballpositionen auf dem Spielfeld anzeigt."""

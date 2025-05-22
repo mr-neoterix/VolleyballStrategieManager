@@ -1,15 +1,15 @@
 import json  # Importiert das json-Modul für die Arbeit mit JSON-Daten.
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QInputDialog, QMenu  # Importiert notwendige Widgets von PyQt6 für die GUI.
-from PyQt6.QtCore import Qt, pyqtSignal  # Importiert Qt-Kernfunktionalitäten und das Signal-System von PyQt6.
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QInputDialog, QMenu  # Importiert notwendige Widgets von PyQt6 für die GUI.
+from PySide6.QtCore import Qt, Signal  # Importiert Qt-Kernfunktionalitäten und das Signal-System von PyQt6.
 
 class TeamPanel(QWidget):  # Definiert eine Klasse für das Panel zur Teamverwaltung, die von QWidget erbt.
     """
     Panel zur Verwaltung von Teams: Speichern, Laden und Auswählen.
     Persistenz in teams.json.
     """
-    teamSelected = pyqtSignal(list)   # Definiert ein Signal, das ausgelöst wird, wenn ein Team ausgewählt wird und die Spielerliste sendet.
+    teamSelected = Signal(list)   # Definiert ein Signal, das ausgelöst wird, wenn ein Team ausgewählt wird und die Spielerliste sendet.
     # Signal bei Änderungen an der Teams-Liste, um die Änderungen zu speichern.
-    teamsChanged = pyqtSignal(list)  # Definiert ein Signal, das bei Änderungen an der Teamliste ausgelöst wird.
+    teamsChanged = Signal(list)  # Definiert ein Signal, das bei Änderungen an der Teamliste ausgelöst wird.
 
     def __init__(self, get_names_callback=None, parent=None): # get_names_callback ist eine Funktion, die die Namen der Spieler ausliest.
         super().__init__(parent)  # Ruft den Konstruktor der Basisklasse QWidget auf.

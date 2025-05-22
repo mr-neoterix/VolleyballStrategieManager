@@ -1,12 +1,12 @@
 import json  # Importiert das json-Modul für die Arbeit mit JSON-Daten.
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QInputDialog, QMenu  # Importiert notwendige Widgets von PyQt6 für die GUI.
-from PyQt6.QtCore import Qt, pyqtSignal  # Importiert Qt-Kernfunktionalitäten und das Signal-System von PyQt6.
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QInputDialog, QMenu  # Importiert notwendige Widgets von PyQt6 für die GUI.
+from PySide6.QtCore import Qt, Signal  # Importiert Qt-Kernfunktionalitäten und das Signal-System von PyQt6.
 
 class DefensivePositionsPanel(QWidget):  # Definiert eine Klasse für das Panel der Defensivpositionen, die von QWidget erbt.
     # Sendet die ausgewählte Formation: ein Tupel (Ballposition, Liste von Spieler-Offsets)
-    formationSelected = pyqtSignal(tuple)  # Definiert ein Signal, das ausgelöst wird, wenn eine Formation ausgewählt wird.
+    formationSelected = Signal(tuple)  # Definiert ein Signal, das ausgelöst wird, wenn eine Formation ausgewählt wird.
     # Neues Signal, um alle Formationen zu senden, wenn sie geladen oder geändert wurden
-    formationsChanged = pyqtSignal(list)  # Definiert ein Signal, das bei Änderungen an den Formationen ausgelöst wird.
+    formationsChanged = Signal(list)  # Definiert ein Signal, das bei Änderungen an den Formationen ausgelöst wird.
     
     def __init__(self, get_formation_callback=None, scale_factor=None, parent=None):  # Konstruktor der Klasse.
         super().__init__(parent)  # Ruft den Konstruktor der Basisklasse QWidget auf.
