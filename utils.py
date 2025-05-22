@@ -1,8 +1,8 @@
 import math  # Importiert das math-Modul für mathematische Operationen.
-from PyQt6.QtCore import QPointF  # Importiert QPointF von PyQt6 für die Arbeit mit 2D-Punkten mit Fließkommazahlen.
-from PyQt6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsItem  # Importiert Klassen für grafische Elemente wie Ellipsen und Text.
-from PyQt6.QtGui import QBrush, QPen, QColor  # Importiert Klassen für Pinsel, Stifte und Farben.
-from PyQt6.QtCore import Qt, QRectF  # Importiert Qt-Kernfunktionalitäten und QRectF für Rechtecke mit Fließkommazahlen.
+from PySide6.QtCore import QPointF  # Importiert QPointF von PyQt6 für die Arbeit mit 2D-Punkten mit Fließkommazahlen.
+from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsItem  # Importiert Klassen für grafische Elemente wie Ellipsen und Text.
+from PySide6.QtGui import QBrush, QPen, QColor  # Importiert Klassen für Pinsel, Stifte und Farben.
+from PySide6.QtCore import Qt, QRectF  # Importiert Qt-Kernfunktionalitäten und QRectF für Rechtecke mit Fließkommazahlen.
 
 # Konstanten
 DEFAULT_SCALE = 30  # Definiert den Standardmaßstab: 30 Pixel pro Meter.

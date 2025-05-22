@@ -1,7 +1,7 @@
-from PyQt6.QtCore import QPointF, QRectF, pyqtSignal, QObject # Importiert notwendige Klassen von PyQt6.QtCore
-from PyQt6.QtWidgets import QGraphicsObject # Importiert QGraphicsObject von PyQt6.QtWidgets
-from PyQt6.QtGui import QBrush, QPen, QColor, QPainter # Importiert notwendige Klassen von PyQt6.QtGui
-from PyQt6.QtCore import Qt # Importiert Qt von PyQt6.QtCore
+from PySide6.QtCore import QPointF, QRectF, Signal, QObject # Importiert notwendige Klassen von PyQt6.QtCore
+from PySide6.QtWidgets import QGraphicsObject # Importiert QGraphicsObject von PyQt6.QtWidgets
+from PySide6.QtGui import QBrush, QPen, QColor, QPainter # Importiert notwendige Klassen von PyQt6.QtGui
+from PySide6.QtCore import Qt # Importiert Qt von PyQt6.QtCore
 
 # Verwendung absoluten Imports
 from utils import CourtDimensions # Importiert CourtDimensions von utils
@@ -9,7 +9,7 @@ from volleyball_field import players # Importiert die Spielerliste vom Volleybal
 
 class BallItem(QGraphicsObject): # Definiert die Klasse BallItem, die von QGraphicsObject erbt
     """Repräsentiert den Ball auf dem Volleyballfeld als interaktives Grafikobjekt"""
-    positionChanged = pyqtSignal(float, float) # Signal, das bei Positionsänderung des Balls ausgesendet wird
+    positionChanged = Signal(float, float) # Signal, das bei Positionsänderung des Balls ausgesendet wird
     
     def __init__(self, rect, label="", court_dimensions=None, parent=None): # Konstruktor der Klasse
         """

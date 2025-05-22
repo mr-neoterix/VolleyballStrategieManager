@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QGraphicsItem  # Importiert QGraphicsItem als Basisklasse für eigene grafische Elemente.
-from PyQt6.QtGui import QBrush, QPen, QColor  # Importiert Klassen für Pinsel, Stifte und Farben.
-from PyQt6.QtCore import Qt, QRectF, QLineF  # Importiert Qt-Kernfunktionalitäten, QRectF für Rechtecke und QLineF für Linien.
+from PySide6.QtWidgets import QGraphicsItem  # Importiert QGraphicsItem als Basisklasse für eigene grafische Elemente.
+from PySide6.QtGui import QBrush, QPen, QColor  # Importiert Klassen für Pinsel, Stifte und Farben.
+from PySide6.QtCore import Qt, QRectF, QLineF  # Importiert Qt-Kernfunktionalitäten, QRectF für Rechtecke und QLineF für Linien.
 
 class VolleyballField(QGraphicsItem):  # Definiert die Klasse für das Volleyballfeld, erbt von QGraphicsItem.
     def __init__(self, scale=30, parent=None):  # Konstruktor der Klasse, nimmt einen Maßstab und ein optionales Eltern-Element entgegen.
