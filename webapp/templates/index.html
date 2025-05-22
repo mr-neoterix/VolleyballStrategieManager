@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volleyball Strategie Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Volleyball Strategie Manager</h1>
+    <div id="container">
+        <canvas id="field" width="800" height="600"></canvas>
+        <div id="sidebars">
+            <div class="panel">
+                <button id="saveFormation">Stellung speichern</button>
+                <ul id="formations"></ul>
+            </div>
+            <div class="panel">
+                <button id="saveTeam">Team speichern</button>
+                <ul id="teams"></ul>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
