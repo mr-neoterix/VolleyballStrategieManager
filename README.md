@@ -64,6 +64,22 @@ python webapp/app.py
 3. Im Build-Ordner `python -m http.server` starten und die generierte `index.html` im Browser öffnen.
 
 
+### WebAssembly-Build
+Für eine im Browser ausführbare Version sind Emscripten und Qt für WebAssembly erforderlich.
+1. Benötigte Pfade setzen und Emscripten aktivieren:
+   ```bash
+   export EMSDK=/pfad/zum/emsdk
+   source "$EMSDK/emsdk_env.sh"
+   export QT_HOST_PATH=/pfad/zu/Qt/host
+   export QT_WASM_PATH=/pfad/zu/Qt/wasm
+   export PATH="$QT_WASM_PATH/bin:$PATH"
+   ```
+2. Projekt generieren:
+   ```bash
+   ./build_wasm.sh
+   ```
+
+
 
 ## Projektstruktur
 
