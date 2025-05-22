@@ -122,7 +122,7 @@ Beide Fenster (Messung & Auswertung) besitzen ein **Datei**-Menü mit den Option
 Es wurden u. a. folgende Bibliotheken verwendet:
 
 - **Matplotlib**: Erzeugung und Einbettung von Diagrammen in die GUI.
-- **PyQt6**: Erstellung der Benutzeroberfläche.
+- **PySide6**: Erstellung der Benutzeroberfläche.
 - **Adafruit_DHT** bzw. **CircuitPython-BMP280**: Einlesen der Sensordaten auf dem Raspberry Pi.
 
 ```python

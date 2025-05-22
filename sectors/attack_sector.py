@@ -1,6 +1,6 @@
 import math # Importiert das Modul math für mathematische Operationen
-from PySide6.QtCore import Qt, QPointF # Importiert Qt und QPointF von PyQt6.QtCore
-from PySide6.QtGui import QBrush, QColor, QPainterPath, QRadialGradient, QPixmap, QPainter, QTransform # Importiert notwendige Klassen von PyQt6.QtGui
+from PySide6.QtCore import Qt, QPointF # Importiert Qt und QPointF von PySide6.QtCore
+from PySide6.QtGui import QBrush, QColor, QPainterPath, QRadialGradient, QPixmap, QPainter, QTransform # Importiert notwendige Klassen von PySide6.QtGui
 from .base_sector import BaseSector # Importiert die Basisklasse BaseSector
 
 class AttackSector(BaseSector): # Definiert die Klasse AttackSector, die von BaseSector erbt

@@ -1,6 +1,6 @@
 # Volleyball Strategie Manager
 
-Eine interaktive Desktop‑Anwendung zur Visualisierung und Verwaltung von Volleyball‑Angriffs‑ und Abwehrformationen. Mit PyQt6 gezeichnetem Spielfeld, bewegbaren Spielern, Annahmezonen und automatischer Einraster‑Funktion.
+Eine interaktive Desktop‑Anwendung zur Visualisierung und Verwaltung von Volleyball‑Angriffs‑ und Abwehrformationen. Mit PySide6 gezeichnetem Spielfeld, bewegbaren Spielern, Annahmezonen und automatischer Einraster‑Funktion.
 
 ## Inhaltsverzeichnis
 
@@ -35,7 +35,7 @@ Eine interaktive Desktop‑Anwendung zur Visualisierung und Verwaltung von Volle
 1. Python 3.8+ installieren
 2. Abhängigkeiten installieren:
    ```bash
-   pip install PyQt6
+   pip install PySide6
    ```
 3. Projekt klonen und in das Verzeichnis wechseln:
    ```bash
@@ -58,6 +58,11 @@ pip install Flask
 python webapp/app.py
 ```
 4. Aufruf im Browser unter http://localhost:5000
+### WebAssembly-Build
+1. Emscripten und die Qt-for-Python WebAssembly-Pakete installieren.
+2. Mit `pyside6-project` die Projektdateien erstellen und `pyside6-embed` ausführen, um die `.wasm`-Version zu erzeugen.
+3. Im Build-Ordner `python -m http.server` starten und die generierte `index.html` im Browser öffnen.
+
 
 
 ## Projektstruktur

@@ -1,7 +1,7 @@
 import sys  # Importiert das sys-Modul für den Zugriff auf Systemparameter und -funktionen.
 import math  # Importiert das math-Modul für mathematische Operationen.
-from PySide6.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QWidget, QHBoxLayout, QGraphicsPathItem, QGraphicsLineItem  # Importiert notwendige Widgets von PyQt6.
-from PySide6.QtGui import QBrush, QPen, QColor, QPainterPath  # Importiert Klassen für Pinsel, Stifte, Farben und Pfade von PyQt6.
+from PySide6.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QWidget, QHBoxLayout, QGraphicsPathItem, QGraphicsLineItem  # Importiert notwendige Widgets von PySide6.
+from PySide6.QtGui import QBrush, QPen, QColor, QPainterPath  # Importiert Klassen für Pinsel, Stifte, Farben und Pfade von PySide6.
 from PySide6.QtCore import Qt, QRectF, QPointF  # Importiert Kernfunktionalitäten und Typen wie Qt-Konstanten, QRectF und QPointF.
 
 # Verwende absolute Importe

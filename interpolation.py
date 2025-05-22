@@ -1,5 +1,5 @@
 import math  # Importiert das math-Modul für mathematische Operationen.
-from PySide6.QtCore import QPointF  # Importiert QPointF von PyQt6 für die Arbeit mit 2D-Punkten mit Fließkommazahlen.
+from PySide6.QtCore import QPointF  # Importiert QPointF von PySide6 für die Arbeit mit 2D-Punkten mit Fließkommazahlen.
 
 def point_in_triangle(p, a, b, c):  # Definiert eine Funktion, um zu prüfen, ob ein Punkt in einem Dreieck liegt.
     """

@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QGraphicsPathItem # Importiert QGraphicsPathItem von PyQt6.QtWidgets
-from PySide6.QtGui import QPen, QPainterPath # Importiert QPen und QPainterPath von PyQt6.QtGui
-from PySide6.QtCore import Qt, QPointF # Importiert Qt und QPointF von PyQt6.QtCore
+from PySide6.QtWidgets import QGraphicsPathItem # Importiert QGraphicsPathItem von PySide6.QtWidgets
+from PySide6.QtGui import QPen, QPainterPath # Importiert QPen und QPainterPath von PySide6.QtGui
+from PySide6.QtCore import Qt, QPointF # Importiert Qt und QPointF von PySide6.QtCore
 
 class BaseSector(QGraphicsPathItem): # Basisklasse für Sektoren (Blockschatten, Schlagwinkel)
     def __init__(self, center:QPointF=QPointF(), z_index=0): # Konstruktor der Klasse
