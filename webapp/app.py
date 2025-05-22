@@ -25,25 +25,59 @@ def save_json(path, data):
 def index():
     return render_template('index.html')
 
-
-@app.route('/api/formations')
-def get_formations():
+@app.route('/api/formations', methods=['GET', 'POST'])
+def formations():
+    """List or append formations."""
+    if request.method == 'POST':
+        formation = request.get_json(silent=True)
+        if not formation:
+            return jsonify({'error': 'Invalid data'}), 400
+        formations = load_json(FORMATIONS_PATH)
+        formations.append(formation)
+        save_json(FORMATIONS_PATH, formations)
+        return jsonify({'status': 'ok'})
     return jsonify(load_json(FORMATIONS_PATH))
 
 
-@app.route('/api/teams')
-def get_teams():
+@app.route('/api/formations/<int:idx>', methods=['PUT', 'DELETE'])
+def formations_modify(idx):
+    """Update or delete a formation by index."""
+    formations = load_json(FORMATIONS_PATH)
+    if idx < 0 or idx >= len(formations):
+        return jsonify({'error': 'invalid index'}), 404
+    if request.method == 'DELETE':
+        formations.pop(idx)
+    else:
+        data = request.get_json(silent=True)
+        if not data:
+            return jsonify({'error': 'Invalid data'}), 400
+        formations[idx] = data
+    save_json(FORMATIONS_PATH, formations)
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/api/teams', methods=['GET', 'POST'])
+def teams():
+    """List or append teams."""
+    if request.method == 'POST':
+        team = request.get_json(silent=True)
+        if not team:
+            return jsonify({'error': 'Invalid data'}), 400
+        teams = load_json(TEAMS_PATH)
+        teams.append(team)
+        save_json(TEAMS_PATH, teams)
+        return jsonify({'status': 'ok'})
     return jsonify(load_json(TEAMS_PATH))
 
 
-@app.route('/api/save_formation', methods=['POST'])
-def save_formation():
-    formation = request.get_json(silent=True)
-    if not formation:
-        return jsonify({'error': 'Invalid data'}), 400
-    formations = load_json(FORMATIONS_PATH)
-    formations.append(formation)
-    save_json(FORMATIONS_PATH, formations)
+@app.route('/api/teams/<int:idx>', methods=['DELETE'])
+def teams_delete(idx):
+    teams = load_json(TEAMS_PATH)
+    if idx < 0 or idx >= len(teams):
+        return jsonify({'error': 'invalid index'}), 404
+    teams.pop(idx)
+    save_json(TEAMS_PATH, teams)
+
     return jsonify({'status': 'ok'})
 
 
