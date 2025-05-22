@@ -30,6 +30,8 @@ Eine interaktive Desktop‑Anwendung zur Visualisierung und Verwaltung von Volle
 
 ## Installation
 
+### Desktop-Version
+
 1. Python 3.8+ installieren
 2. Abhängigkeiten installieren:
    ```bash
@@ -44,6 +46,19 @@ Eine interaktive Desktop‑Anwendung zur Visualisierung und Verwaltung von Volle
    ```bash
    python main.py
    ```
+
+### Webserver-Version
+1. Python 3.8+ installieren
+2. Abhängigkeiten installieren:
+```bash
+pip install Flask
+```
+3. Server starten:
+```bash
+python webapp/app.py
+```
+4. Aufruf im Browser unter http://localhost:5000
+
 
 ## Projektstruktur
 
